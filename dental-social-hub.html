@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dental Social Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#080808;color:#fff;min-height:100vh;display:flex}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:210px;background:rgba(255,255,255,0.02);border-right:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;z-index:100}
+.logo-wrap{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.logo-text{font-family:'Playfair Display',serif;font-size:18px;font-weight:800;line-height:1.2;background:linear-gradient(135deg,#00ffa3,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:10px;color:#444;margin-top:3px}
+.nav{flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:3px;overflow-y:auto}
+.nav-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:10px;border:none;background:transparent;border-left:2px solid transparent;color:#555;cursor:pointer;text-align:left;font-size:12px;width:100%;transition:all 0.15s;font-family:inherit}
+.nav-btn.active{background:rgba(0,255,163,0.08);border-left-color:#00ffa3;color:#00ffa3;font-weight:600}
+.nav-btn:hover:not(.active){background:rgba(255,255,255,0.04);color:#888}
+.nav-badge{margin-left:auto;background:rgba(225,48,108,0.2);color:#E1306C;border-radius:8px;padding:1px 6px;font-size:9px;font-weight:700}
+.sidebar-foot{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.06)}
+.main{margin-left:210px;padding:28px 32px;max-width:980px;min-height:100vh;flex:1}
+.page-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:4px}
+.page-sub{color:#666;font-size:12px;margin-bottom:20px}
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px}
+.input-field{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 10px;color:#fff;font-size:12px;outline:none;width:100%;font-family:inherit}
+.input-field:focus{border-color:rgba(225,48,108,0.4)}
+.label{color:#666;font-size:10px;margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.btn-primary{background:linear-gradient(135deg,#E1306C,#ff6b35);border:none;border-radius:9px;padding:11px 16px;color:#fff;font-weight:700;font-size:13px;cursor:pointer;width:100%;font-family:inherit;transition:opacity 0.15s}
+.btn-primary:disabled{background:#1a1a1a;color:#555;cursor:not-allowed}
+.btn-ghost{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:5px 11px;color:#777;font-size:11px;cursor:pointer;font-family:inherit}
+.tag-pill{background:rgba(225,48,108,0.08);border:1px solid rgba(225,48,108,0.2);border-radius:20px;padding:2px 9px;font-size:11px;color:#e1608c;display:inline-block}
+.format-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:none;background:transparent;border-left:2px solid transparent;color:#666;cursor:pointer;text-align:left;width:100%;font-family:inherit;font-size:12px;transition:all 0.12s}
+.format-btn.active{background:rgba(225,48,108,0.1);border-left-color:#E1306C;color:#E1306C;font-weight:600}
+.format-btn:hover:not(.active){background:rgba(255,255,255,0.04);color:#888}
+.variant-tab{flex:1;padding:9px 6px;border-radius:10px;border:none;background:rgba(255,255,255,0.03);border-bottom:2px solid transparent;color:#666;cursor:pointer;font-size:12px;transition:all 0.15s;font-family:inherit}
+.variant-tab.active{background:rgba(225,48,108,0.1);border-bottom-color:#E1306C;color:#E1306C;font-weight:700}
+.trend-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color 0.2s}
+.trend-card:hover{border-color:rgba(0,255,163,0.3)}
+.stat-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:18px}
+.patient-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden}
+.inf-row{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.hook-box{background:rgba(225,48,108,0.06);border:1px solid rgba(225,48,108,0.15);border-radius:10px;padding:12px 14px;color:#fff;font-size:14px;font-weight:600;line-height:1.6;font-family:Georgia,serif}
+.content-box{background:#0a0a0a;border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:16px 16px 36px;color:#ddd;font-size:13px;line-height:1.85;white-space:pre-wrap;font-family:Georgia,serif;position:relative;min-height:80px}
+.copy-btn-abs{position:absolute;bottom:10px;right:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:3px 9px;color:#666;font-size:10px;cursor:pointer;font-family:inherit}
+.tip-box{background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-radius:9px;padding:10px 13px;color:#00d4ff;font-size:12px;line-height:1.5}
+.algo-note{background:rgba(225,48,108,0.05);border:1px solid rgba(225,48,108,0.15);border-radius:10px;padding:11px 14px;display:flex;gap:9px;align-items:flex-start;color:#e1608c;font-size:12px;line-height:1.5}
+.section-label{color:#555;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px}
+.trend-bar{background:linear-gradient(90deg,rgba(225,48,108,0.08),rgba(255,107,53,0.03));border:1px solid rgba(225,48,108,0.18);border-radius:10px;padding:9px 14px;margin-bottom:18px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.auto-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 13px;color:#666;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit}
+.auto-btn.on{background:rgba(0,255,163,0.08);border-color:rgba(0,255,163,0.3);color:#00ffa3;font-weight:600}
+.all-versions{background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-box{background:#0f0f0f;border:1px solid rgba(0,255,163,0.3);border-radius:16px;padding:26px;max-width:580px;width:100%;max-height:80vh;overflow-y:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+.spin{display:inline-block;animation:spin 0.8s linear infinite}
+.pulse{animation:pulse 1.4s ease-in-out infinite;display:inline-block}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo-wrap">
+    <div class="logo-text">Dental<br>Social Hub</div>
+    <div class="logo-sub">Sağlık Turizmi · SM Yönetimi</div>
+  </div>
+  <nav class="nav" id="nav"></nav>
+  <div class="sidebar-foot">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div class="avatar" style="width:32px;height:32px;background:rgba(0,255,163,0.1);border:1.5px solid rgba(0,255,163,0.3);font-size:11px;color:#00ffa3">SM</div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#ccc">Sosyal Medya</div>
+        <div style="font-size:10px;color:#555">Yöneticisi</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+
+<script>
+// ── VERİLER ────────────────────────────────────────────────────────────────────
+var TABS=[
+  {label:'Dashboard',icon:'🏠'},
+  {label:'Trend Takip',icon:'📈'},
+  {label:'Hasta Galerisi',icon:'📸'},
+  {label:'Influencer Hub',icon:'⭐'},
+  {label:'İçerik Önerileri',icon:'✨'},
+  {label:'Hasta Röportajları',icon:'🎙️',badge:true}
+];
+
+var TRENDS=[
+  {platform:'TikTok',title:'Gülüş Dönüşümü',tag:'#SmileTransformation',views:'2.4B',growth:'+34%',hot:true,pc:'#888'},
+  {platform:'Instagram',title:'Veneer Öncesi/Sonrası',tag:'#VeneerResults',views:'890M',growth:'+21%',hot:true,pc:'#E1306C'},
+  {platform:'YouTube',title:'Türkiye\'de Diş Turizmi',tag:'Dental Tourism Turkey',views:'45M',growth:'+67%',hot:true,pc:'#FF0000'},
+  {platform:'TikTok',title:'Hollywood Smile',tag:'#HollywoodSmile',views:'1.1B',growth:'+18%',hot:false,pc:'#888'},
+  {platform:'Instagram',title:'Zirkonyum Kaplama',tag:'#ZirconiumCrown',views:'320M',growth:'+12%',hot:false,pc:'#E1306C'},
+  {platform:'YouTube',title:'Diş Beyazlatma Vlog',tag:'Teeth Whitening Turkey',views:'28M',growth:'+29%',hot:true,pc:'#FF0000'}
+];
+
+var INFLUENCERS=[
+  {handle:'@burcuerzincanli',platform:'Instagram',followers:'2.1M',niche:'Yaşam Tarzı / Güzellik',country:'🇹🇷 Türkiye',av:'BE',eng:'4.2%'},
+  {handle:'@duyguasena',platform:'Instagram',followers:'1.8M',niche:'Sağlık & Estetik',country:'🇹🇷 Türkiye',av:'DA',eng:'3.8%'},
+  {handle:'@neslihanatagul',platform:'Instagram',followers:'3.4M',niche:'Yaşam Tarzı',country:'🇹🇷 Türkiye',av:'NA',eng:'2.9%'},
+  {handle:'@huda.beauty',platform:'Instagram',followers:'54M',niche:'Güzellik & Estetik',country:'🌍 Global',av:'HB',eng:'1.4%'},
+  {handle:'@katerinagray',platform:'TikTok',followers:'12M',niche:'Sağlık & Dönüşüm',country:'🌍 Global',av:'KG',eng:'6.7%'},
+  {handle:'@dr.karishma',platform:'Instagram',followers:'890K',niche:'Dental & Estetik',country:'🌍 Global',av:'DK',eng:'5.1%'}
+];
+
+var FORMATS=[
+  {id:'reel',label:'Reel Açıklaması',icon:'🎬',desc:'Kısa video altı caption + hashtag'},
+  {id:'carousel',label:'Carousel Hikayesi',icon:'📖',desc:'Slayt slayt hasta yolculuğu'},
+  {id:'quote',label:'Alıntı Postu',icon:'💬',desc:'Hastanın sözleri — güçlü bir cümle'},
+  {id:'before_after',label:'Önce/Sonra Yazısı',icon:'✨',desc:'Dönüşüm odaklı caption'},
+  {id:'story',label:'Story Metni',icon:'📲',desc:'Hikaye serisi için kısa metinler'},
+  {id:'testimonial',label:'Referans Postu',icon:'⭐',desc:'Sosyal kanıt odaklı uzun caption'},
+  {id:'qa',label:'Soru & Cevap',icon:'🎙️',desc:'Hasta ile röportaj soruları + yanıtlar'},
+  {id:'vlog',label:'Vlog Tanıtımı',icon:'🎥',desc:'YouTube/Reels için intro metni'}
+];
+
+var TREATMENTS=['Veneer','Zirkonyum Kaplama','Hollywood Smile','İmplant','Diş Beyazlatma','Gülüş Tasarımı','All-on-4','All-on-6'];
+var LANGS=['English','Türkçe','Deutsch','Arabic (العربية)','French','Italian'];
+var VIBES=['Duygusal & İlham Verici','Samimi & Gerçekçi','Heyecanlı & Enerjik','Güven Verici & Sakin'];
+var CONTENT_IDEAS=[
+  {type:'Reel / TikTok',title:'48 Saatte Mükemmel Gülüş',desc:'Hasta yolculuğunu hızlı kesmek — varış, klinik, sonuç',platforms:['Instagram','TikTok'],priority:'Yüksek'},
+  {type:'Carousel',title:'Türkiye\'de Diş Tedavisi Neden Ucuz?',desc:'İngiltere/Almanya kıyaslamalı infografik',platforms:['Instagram'],priority:'Yüksek'},
+  {type:'YouTube Vlog',title:'İngiliz Hasta Deneyimi',desc:'Uçuş + otel + klinik + sonuç tam döngü',platforms:['YouTube'],priority:'Orta'},
+  {type:'Story Serisi',title:'Soru-Cevap: Veneer mi Zirkonyum mu?',desc:'Doktor ile canlı Q&A hikaye formatında',platforms:['Instagram'],priority:'Orta'},
+  {type:'Reel',title:'Mutlu Hasta Anı',desc:'Hastanın aynada gülüşünü ilk gördüğü anı çek',platforms:['Instagram','TikTok'],priority:'Yüksek'}
+];
+var PC={Instagram:'#E1306C',TikTok:'#888',YouTube:'#FF0000'};
+var PRC={Yüksek:'#00ffa3',Orta:'#ffc947',Düşük:'#888'};
+
+// ── DURUM ──────────────────────────────────────────────────────────────────────
+var activeTab=0;
+var patients=[
+  {id:1,name:'Sarah M.',date:'Oca 2025',treatment:'Hollywood Smile',status:'Tamamlandı',before:null,after:null},
+  {id:2,name:'James T.',date:'Mar 2025',treatment:'Veneer (18 diş)',status:'Devam Ediyor',before:null,after:null},
+  {id:3,name:'Emma K.',date:'Nis 2025',treatment:'Zirkonyum Kaplama',status:'Tamamlandı',before:null,after:null}
+];
+var myInfluencers=[];
+var contentIdeas=CONTENT_IDEAS.slice();
+var selFormat=FORMATS[0];
+var iLang='English',iVibe='Duygusal & İlham Verici',iTreat='Veneer';
+var iName='',iCountry='',iQuote='',iNotes='';
+var iPerspective='1st';
+var interviewResult=null,activeVariant=0,isLoading=false;
+var autoRefresh=false,autoTimer=null,lastRefreshed=null,copiedKey=null;
+var uploadPid=null,uploadType=null;
+var mailModal=null,mailLoading=false,mailContent='',mailPurpose='işbirliği';
+
+// ── RENDER ─────────────────────────────────────────────────────────────────────
+function render(){
+  var nav=document.getElementById('nav');
+  nav.innerHTML=TABS.map(function(t,i){
+    return '<button class="nav-btn'+(i===activeTab?' active':'')+'" onclick="sw('+i+')">'
+      +'<span style="font-size:15px">'+t.icon+'</span>'
+      +'<span>'+t.label+'</span>'
+      +(t.badge?'<span class="nav-badge">YENİ</span>':'')
+      +'</button>';
+  }).join('');
+  var pages=[rDash,rTrends,rPatients,rInfluencers,rContent,rInterview];
+  document.getElementById('main').innerHTML=pages[activeTab]();
+}
+
+function sw(i){activeTab=i;render();}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────────
+function rDash(){
+  var stats=[
+    {label:'Toplam Hasta',value:'142',change:'+12 bu ay',icon:'🦷'},
+    {label:'Takip Edilen Trend',value:'38',change:'3 yeni bu hafta',icon:'📈'},
+    {label:'Influencer',value:'24',change:'6 aktif görüşme',icon:'⭐'},
+    {label:'İçerik Fikri',value:'67',change:'15 bu hafta üretildi',icon:'✨'}
+  ];
+  return '<div class="page-title">Genel Bakış</div>'
+    +'<div class="page-sub">'+new Date().toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px">'
+    +stats.map(function(s){return '<div class="stat-card"><div style="font-size:26px;margin-bottom:10px">'+s.icon+'</div><div style="font-size:28px;font-weight:800">'+s.value+'</div><div style="color:#888;font-size:12px;margin-top:3px">'+s.label+'</div><div style="color:#00ffa3;font-size:11px;margin-top:7px">'+s.change+'</div></div>';}).join('')
+    +'</div>'
+    +'<div style="font-weight:700;font-size:14px;margin-bottom:12px">🔥 Bu Haftanın Trendleri</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'+TRENDS.filter(function(t){return t.hot;}).map(tCardHTML).join('')+'</div>';
+}
+
+function tCardHTML(t){
+  return '<div class="trend-card">'
+    +'<div style="background:'+t.pc+'22;border:1px solid '+t.pc+'44;border-radius:8px;padding:4px 10px;font-size:10px;color:'+t.pc+';font-weight:700;white-space:nowrap">'+t.platform+'</div>'
+    +'<div style="flex:1"><div style="font-weight:600;font-size:13px">'+t.title+'</div><div style="color:#888;font-size:11px;margin-top:1px">'+t.tag+'</div></div>'
+    +'<div style="text-align:right"><div style="color:#00ffa3;font-weight:700;font-size:12px">'+t.growth+'</div><div style="color:#555;font-size:10px">'+t.views+'</div></div>'
+    +(t.hot?'<div style="background:linear-gradient(135deg,#ff6b35,#ff0055);border-radius:20px;padding:2px 9px;font-size:9px;font-weight:700;color:#fff;white-space:nowrap">🔥 HOT</div>':'')
+    +'</div>';
+}
+
+// ── TREND TAKIP ────────────────────────────────────────────────────────────────
+function rTrends(){
+  return '<div class="page-title">Trend Takip</div>'
+    +'<div class="page-sub">Dental & sağlık turizmi trendleri</div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap" id="tf-btns">'
+    +['Tümü','Instagram','TikTok','YouTube'].map(function(p){
+      var active=p==='Tümü';
+      return '<button onclick="filterT(\''+p+'\')" data-tf="'+p+'" style="background:'+(active?'#00ffa3':'rgba(255,255,255,0.05)')+';border:1px solid '+(active?'#00ffa3':'rgba(255,255,255,0.1)')+';border-radius:20px;padding:5px 14px;color:'+(active?'#000':'#888')+';font-weight:'+(active?700:400)+';cursor:pointer;font-size:12px;font-family:inherit">'+p+'</button>';
+    }).join('')
+    +'</div>'
+    +'<div id="tlist" style="display:flex;flex-direction:column;gap:8px">'+TRENDS.map(tCardHTML).join('')+'</div>';
+}
+
+function filterT(p){
+  var filtered=p==='Tümü'?TRENDS:TRENDS.filter(function(t){return t.platform===p;});
+  var el=document.getElementById('tlist');
+  if(el)el.innerHTML=filtered.map(tCardHTML).join('');
+  document.querySelectorAll('[data-tf]').forEach(function(b){
+    var bp=b.getAttribute('data-tf');
+    b.style.background=bp===p?'#00ffa3':'rgba(255,255,255,0.05)';
+    b.style.color=bp===p?'#000':'#888';
+    b.style.borderColor=bp===p?'#00ffa3':'rgba(255,255,255,0.1)';
+    b.style.fontWeight=bp===p?'700':'400';
+  });
+}
+
+// ── HASTA GALERİSİ ─────────────────────────────────────────────────────────────
+function rPatients(){
+  var sc={'Tamamlandı':'#00ffa3','Devam Ediyor':'#ffc947'};
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">'
+    +'<div><div class="page-title">Hasta Galerisi</div><div style="color:#666;font-size:12px">Başlangıç & sonuç fotoğrafları</div></div>'
+    +'<button onclick="showPForm()" style="background:linear-gradient(135deg,#00ffa3,#00d4ff);border:none;border-radius:10px;padding:8px 16px;color:#000;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">+ Yeni Hasta</button>'
+    +'</div>'
+    +'<div id="p-form" style="display:none;background:rgba(0,255,163,0.04);border:1px solid rgba(0,255,163,0.2);border-radius:12px;padding:16px;margin-bottom:18px">'
+    +'<div style="font-weight:700;color:#00ffa3;margin-bottom:12px;font-size:13px">Hasta Ekle</div>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+    +'<input id="pn" class="input-field" placeholder="Ad Soyad" style="flex:1;min-width:130px"/>'
+    +'<input id="pt" class="input-field" placeholder="Tedavi" style="flex:1;min-width:130px"/>'
+    +'<input id="pd" class="input-field" placeholder="Tarih" style="flex:1;min-width:110px"/>'
+    +'<button onclick="addP()" style="background:#00ffa3;border:none;border-radius:8px;padding:8px 14px;color:#000;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">Kaydet</button>'
+    +'<button onclick="hidePForm()" style="background:transparent;border:1px solid #444;border-radius:8px;padding:8px 12px;color:#888;cursor:pointer;font-size:12px;font-family:inherit">İptal</button>'
+    +'</div></div>'
+    +'<input type="file" id="fup" accept="image/*" style="display:none" onchange="handleUp(event)"/>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">'
+    +patients.map(function(p){
+      var sc2=sc[p.status]||'#888';
+      return '<div class="patient-card">'
+        +'<div style="padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div style="font-weight:700;font-size:14px">'+p.name+'</div><div style="color:#666;font-size:11px">'+p.treatment+' · '+p.date+'</div></div>'
+        +'<div style="background:'+sc2+'22;color:'+sc2+';border:1px solid '+sc2+'44;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:600">'+p.status+'</div>'
+        +'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr">'
+        +['before','after'].map(function(type,idx){
+          return '<div onclick="trigUp('+p.id+',\''+type+'\')" style="position:relative;aspect-ratio:1;background:rgba(255,255,255,0.02);'+(idx===0?'border-right:1px solid rgba(255,255,255,0.06)':'')+';cursor:pointer;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">'
+            +(p[type]?'<img src="'+p[type]+'" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>'
+              :'<div style="font-size:24px;opacity:0.15">📷</div><div style="font-size:9px;color:#555;font-weight:700">'+(type==='before'?'ÖNCE':'SONRA')+'</div>')
+            +'<div style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,0.7);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:700;color:'+(type==='before'?'#ff6b6b':'#00ffa3')+'">'+(type==='before'?'ÖNCE':'SONRA')+'</div>'
+            +'</div>';
+        }).join('')
+        +'</div>'
+        +(p.before&&p.after?'<div style="padding:9px 16px;text-align:center"><button style="background:linear-gradient(135deg,#00ffa3,#00d4ff);border:none;border-radius:20px;padding:5px 16px;color:#000;font-weight:700;font-size:11px;cursor:pointer;font-family:inherit">📤 Sosyal Medyaya Paylaş</button></div>':'')
+        +'</div>';
+    }).join('')+'</div>';
+}
+
+function showPForm(){var e=document.getElementById('p-form');if(e)e.style.display='block';}
+function hidePForm(){var e=document.getElementById('p-form');if(e)e.style.display='none';}
+function addP(){
+  var n=document.getElementById('pn'),t=document.getElementById('pt'),d=document.getElementById('pd');
+  if(!n||!t||!n.value||!t.value)return;
+  patients.push({id:Date.now(),name:n.value,treatment:t.value,date:d?d.value||new Date().toLocaleDateString('tr-TR'):'',status:'Devam Ediyor',before:null,after:null});
+  render();
+}
+function trigUp(pid,type){uploadPid=pid;uploadType=type;document.getElementById('fup').click();}
+function handleUp(e){
+  var file=e.target.files[0];if(!file)return;
+  var url=URL.createObjectURL(file);
+  patients=patients.map(function(p){if(p.id===uploadPid){var np=Object.assign({},p);np[uploadType]=url;return np;}return p;});
+  render();
+}
+
+// ── INFLUENCER HUB ─────────────────────────────────────────────────────────────
+function rInfluencers(){
+  var all=INFLUENCERS.concat(myInfluencers.map(function(m){return Object.assign({},m,{custom:true});}));
+  return '<div class="page-title">Influencer Hub</div>'
+    +'<div class="page-sub">İşbirliği yapabileceğin hesaplar & AI mail oluşturucu</div>'
+    +'<div style="background:rgba(0,255,163,0.03);border:1px solid rgba(0,255,163,0.15);border-radius:12px;padding:13px;margin-bottom:18px;display:flex;gap:9px;flex-wrap:wrap">'
+    +'<input id="ih" class="input-field" placeholder="@instagram_hesabı ekle..." style="flex:1;min-width:180px"/>'
+    +'<select id="mp" class="input-field" style="width:auto" onchange="mailPurpose=this.value">'
+    +'<option value="işbirliği">İşbirliği Teklifi</option>'
+    +'<option value="bedava tedavi karşılığı içerik">Ücretsiz Tedavi Teklifi</option>'
+    +'<option value="brand ambassador">Brand Ambassador</option>'
+    +'<option value="vlog çekimi">Vlog İşbirliği</option>'
+    +'</select>'
+    +'<button onclick="addInf()" style="background:#00ffa3;border:none;border-radius:8px;padding:8px 14px;color:#000;font-weight:700;cursor:pointer;font-size:12px;font-family:inherit">+ Ekle</button>'
+    +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:10px">'
+    +all.map(function(inf,i){
+      var pc=PC[inf.platform]||'#888';
+      return '<div class="inf-row"'+(inf.custom?' style="border-color:rgba(0,255,163,0.2)"':'')+' >'
+        +'<div class="avatar" style="width:38px;height:38px;background:'+(inf.custom?'rgba(0,255,163,0.1)':'rgba(0,212,255,0.1)')+';border:1.5px solid '+(inf.custom?'rgba(0,255,163,0.3)':'rgba(0,212,255,0.3)')+';font-size:12px;color:'+(inf.custom?'#00ffa3':'#00d4ff')+'">'+(inf.av||inf.handle.slice(1,3).toUpperCase())+'</div>'
+        +'<div style="flex:1;min-width:130px"><div style="display:flex;align-items:center;gap:7px"><span style="font-weight:700;font-size:13px">'+inf.handle+'</span>'+(inf.custom?'<span style="font-size:9px;color:#00ffa3;background:rgba(0,255,163,0.1);border-radius:8px;padding:1px 6px">Özel</span>':'')+'</div><div style="color:#666;font-size:11px">'+(inf.niche||'Belirsiz')+' · '+(inf.country||'—')+'</div></div>'
+        +'<div style="text-align:center;min-width:60px"><div style="font-weight:700;font-size:13px">'+(inf.followers||'—')+'</div><div style="color:#555;font-size:10px">takipçi</div></div>'
+        +'<div style="text-align:center;min-width:50px"><div style="color:#00ffa3;font-weight:700;font-size:13px">'+(inf.eng||'—')+'</div><div style="color:#555;font-size:10px">etkileşim</div></div>'
+        +'<div style="background:'+pc+'22;color:'+pc+';border:1px solid '+pc+'44;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700">'+inf.platform+'</div>'
+        +'<button onclick="genMail('+i+')" style="background:linear-gradient(135deg,#00ffa3,#00d4ff);border:none;border-radius:8px;padding:7px 13px;color:#000;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap;font-family:inherit">✉️ Mail Yaz</button>'
+        +'</div>';
+    }).join('')+'</div>'
+    +(mailModal?rMailModal():'');
+}
+
+function rMailModal(){
+  return '<div class="modal-overlay" onclick="closeMail()">'
+    +'<div class="modal-box" onclick="event.stopPropagation()">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+    +'<div><div style="font-weight:700;color:#00ffa3;font-size:14px">✉️ İşbirliği Maili</div><div style="color:#666;font-size:11px">'+mailModal.handle+'</div></div>'
+    +'<button class="btn-ghost" onclick="closeMail()">✕</button>'
+    +'</div>'
+    +(mailLoading?'<div style="text-align:center;padding:40px;color:#00ffa3"><span class="spin">⟳</span> Oluşturuluyor...</div>'
+      :'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px;color:#ccc;font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:Georgia,serif">'+mailContent+'</div>'
+       +'<button onclick="cpMail()" style="margin-top:14px;background:#00ffa3;border:none;border-radius:8px;padding:10px;color:#000;font-weight:700;cursor:pointer;width:100%;font-size:13px;font-family:inherit">📋 Kopyala</button>')
+    +'</div></div>';
+}
+
+function addInf(){
+  var h=document.getElementById('ih');if(!h||!h.value.trim())return;
+  var handle=h.value.trim().charAt(0)==='@'?h.value.trim():'@'+h.value.trim();
+  myInfluencers.push({handle:handle,platform:'Instagram',av:handle.slice(1,3).toUpperCase(),custom:true});
+  render();
+}
+
+function genMail(idx){
+  var all=INFLUENCERS.concat(myInfluencers.map(function(m){return Object.assign({},m,{custom:true});}));
+  var inf=all[idx];
+  mailModal=inf;mailLoading=true;mailContent='';
+  render();
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:'Sen bir dental sağlık turizmi firmasının sosyal medya uzmanısın. Türkiye\'de diş tedavisi hizmetleri sunuyorsunuz (veneer, zirkonyum, hollywood smile, implant). Şu influencer ile '+mailPurpose+' için bir İngilizce işbirliği teklif maili yaz:\n\nInfluencer: '+inf.handle+'\nPlatform: '+inf.platform+'\nTakipçi: '+(inf.followers||'bilinmiyor')+'\nNiş: '+(inf.niche||'genel')+'\n\nKısa, profesyonel, samimi ve cazip bir mail olsun. Özel teklif detayları ekle (ücretsiz tedavi, konaklama, uçuş). Sadece mail metnini yaz.'}]})
+  }).then(function(r){return r.json();}).then(function(d){
+    mailContent=(d.content&&d.content.find(function(b){return b.type==='text';}))||{text:'Hata.'};
+    mailContent=mailContent.text||'Hata.';
+    mailLoading=false;render();
+  }).catch(function(){mailContent='API hatası.';mailLoading=false;render();});
+}
+
+function closeMail(){mailModal=null;render();}
+function cpMail(){navigator.clipboard.writeText(mailContent).catch(function(){});}
+
+// ── İÇERİK ÖNERİLERİ ──────────────────────────────────────────────────────────
+function rContent(){
+  return '<div class="page-title">İçerik Önerileri</div>'
+    +'<div class="page-sub">AI destekli içerik fikri üreteci</div>'
+    +'<div style="display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap">'
+    +'<input id="ctopic" class="input-field" placeholder="Konu gir... (ör: implant, veneer, hasta hikayeleri)" style="flex:1;min-width:180px"/>'
+    +'<select id="cplatform" class="input-field" style="width:auto"><option>Tümü</option><option>Instagram</option><option>TikTok</option><option>YouTube</option></select>'
+    +'<button id="idea-btn" onclick="genIdeas()" style="background:linear-gradient(135deg,#00ffa3,#00d4ff);border:none;border-radius:8px;padding:8px 16px;color:#000;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">✨ AI Fikir Üret</button>'
+    +'</div>'
+    +'<div id="ideas" style="display:flex;flex-direction:column;gap:12px">'+contentIdeas.map(ideaHTML).join('')+'</div>';
+}
+
+function ideaHTML(idea){
+  var platforms=(idea.platforms||[idea.platform]||[]);
+  return '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:13px;padding:15px 18px;display:flex;gap:13px;align-items:flex-start">'
+    +'<div style="background:rgba(0,255,163,0.08);border:1px solid rgba(0,255,163,0.2);border-radius:8px;padding:5px 10px;font-size:10px;color:#00ffa3;font-weight:700;white-space:nowrap">'+idea.type+'</div>'
+    +'<div style="flex:1"><div style="font-weight:700;font-size:13px;margin-bottom:3px">'+idea.title+'</div><div style="color:#888;font-size:12px;line-height:1.5">'+idea.desc+'</div>'
+    +'<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">'
+    +platforms.map(function(p){var c=PC[p]||'#555';return '<span style="background:'+c+'22;color:'+c+';border:1px solid '+c+'44;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:600">'+p+'</span>';}).join('')
+    +'</div></div>'
+    +'<div style="background:'+(PRC[idea.priority]||'#888')+'22;color:'+(PRC[idea.priority]||'#888')+';border:1px solid '+(PRC[idea.priority]||'#888')+'44;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700;white-space:nowrap">'+(idea.priority||'Orta')+'</div>'
+    +'</div>';
+}
+
+function genIdeas(){
+  var topic=document.getElementById('ctopic'),platform=document.getElementById('cplatform');
+  var tp=topic?topic.value:'',pl=platform?platform.value:'Tümü';
+  var btn=document.getElementById('idea-btn');if(btn){btn.disabled=true;btn.textContent='⟳ Üretiliyor...';}
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:'Türkiye\'de diş sağlığı turizmi yapan bir klinik için sosyal medya içerik fikirleri üret. Konu: "'+(tp||'genel dental turizm')+'". Platform: '+pl+'.\n\nSadece JSON dizisi döndür, başka metin yok:\n[{"type":"içerik türü","title":"başlık","desc":"açıklama","platforms":["platform"],"priority":"Yüksek/Orta/Düşük"}]\n\n5 fikir üret.'}]})
+  }).then(function(r){return r.json();}).then(function(d){
+    var raw=(d.content&&d.content.find(function(b){return b.type==='text';}))||{text:'[]'};
+    try{contentIdeas=JSON.parse(raw.text.replace(/```json|```/g,'').trim());}catch(e){contentIdeas=CONTENT_IDEAS.slice();}
+    render();
+  }).catch(function(){render();});
+}
+
+// ── HASTA RÖPORTAJLARI ─────────────────────────────────────────────────────────
+function rInterview(){
+  var hotTags=TRENDS.filter(function(t){return t.hot;}).map(function(t){return t.tag;});
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">'
+    +'<div><div class="page-title">Hasta Röportaj İçerikleri</div><div style="color:#666;font-size:12px">Gerçek hasta hikayelerinden Instagram içeriği üret</div></div>'
+    +'<button class="auto-btn'+(autoRefresh?' on':'')+'" onclick="toggleAuto()">'
+    +'<span style="font-size:9px">●</span>'+(autoRefresh?'Oto-Yenileme Açık':'Oto-Yenileme Kapalı')
+    +(lastRefreshed?'<span style="font-size:10px;color:#555"> · '+lastRefreshed.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+'</span>':'')
+    +'</button></div>'
+    +'<div class="trend-bar">'
+    +'<span style="font-size:11px;color:#E1306C;font-weight:700">📸 TRENDLER:</span>'
+    +hotTags.map(function(t){return '<span class="tag-pill">'+t+'</span>';}).join('')
+    +'<span style="color:#555;font-size:10px;margin-left:auto">Caption\'lara otomatik eklenir</span>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:245px 1fr;gap:20px;align-items:start">'
+    // SOL
+    +'<div style="display:flex;flex-direction:column;gap:13px">'
+    +'<div class="card" style="padding:14px">'
+    +'<div class="label" style="margin-bottom:10px">İçerik Formatı</div>'
+    +FORMATS.map(function(f){
+      return '<button class="format-btn'+(selFormat.id===f.id?' active':'')+'" onclick="selFmt(\''+f.id+'\')">'
+        +'<span style="font-size:14px">'+f.icon+'</span>'
+        +'<div><div style="font-size:12px">'+f.label+'</div><div style="font-size:10px;opacity:0.5">'+f.desc+'</div></div>'
+        +'</button>';
+    }).join('')
+    +'</div>'
+    +'<div class="card" style="padding:14px;display:flex;flex-direction:column;gap:10px">'
+    +'<div class="label">Hasta Bilgileri</div>'
+    +'<div><div class="label">Dil</div><select id="il" class="input-field" onchange="iLang=this.value">'+LANGS.map(function(l){return '<option'+(l===iLang?' selected':'')+'>'+l+'</option>';}).join('')+'</select></div>'
+    +'<div><div class="label">Ton / Vibe</div><select id="iv" class="input-field" onchange="iVibe=this.value">'+VIBES.map(function(v){return '<option'+(v===iVibe?' selected':'')+'>'+v+'</option>';}).join('')+'</select></div>'
+    +'<div><div class="label">Tedavi</div><select id="itr" class="input-field" onchange="iTreat=this.value">'+TREATMENTS.map(function(t){return '<option'+(t===iTreat?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div><div class="label">Hasta Adı (opsiyonel)</div><input id="iname" class="input-field" placeholder="ör: Sarah, Marco..." value="'+esc(iName)+'" oninput="iName=this.value"/></div>'
+    +'<div><div class="label">Nereden Geldi</div><input id="icountry" class="input-field" placeholder="ör: UK, Germany..." value="'+esc(iCountry)+'" oninput="iCountry=this.value"/></div>'
+    +'<div><div class="label" style="color:#e1608c">Hastanın Kendi Sözleri 💬</div><textarea id="iquote" class="input-field" rows="3" placeholder="&quot;I never smiled in photos before...&quot;" style="resize:vertical;line-height:1.5;border-color:rgba(225,48,108,0.25)" oninput="iQuote=this.value">'+esc(iQuote)+'</textarea></div>'
+    +'<div><div class="label">Ek Notlar (opsiyonel)</div><textarea id="inotes" class="input-field" rows="2" placeholder="ör: Hasta 3 gün kaldı, önce korku vardı..." style="resize:vertical" oninput="iNotes=this.value">'+esc(iNotes)+'</textarea></div>'
+    +'<div>'
+    +'<div class="label" style="margin-bottom:8px">Anlatım Bakış Açısı</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">'
+    +'<button onclick="setPerspective(\'1st\')" style="padding:10px 8px;border-radius:9px;border:1.5px solid '+(iPerspective==='1st'?'#E1306C':'rgba(255,255,255,0.1)')+';background:'+(iPerspective==='1st'?'rgba(225,48,108,0.12)':'rgba(255,255,255,0.03)')+';color:'+(iPerspective==='1st'?'#E1306C':'#666')+';cursor:pointer;font-family:inherit;text-align:center;transition:all 0.15s">'
+    +'<div style="font-size:18px;margin-bottom:4px">🙋</div>'
+    +'<div style="font-size:11px;font-weight:'+(iPerspective==='1st'?700:500)+'">1. Tekil Şahıs</div>'
+    +'<div style="font-size:10px;opacity:0.6;margin-top:2px">Hasta kendi anlatıyor</div>'
+    +'<div style="font-size:9px;margin-top:4px;font-style:italic;opacity:0.5">"I came to Turkey and..."</div>'
+    +'</button>'
+    +'<button onclick="setPerspective(\'3rd\')" style="padding:10px 8px;border-radius:9px;border:1.5px solid '+(iPerspective==='3rd'?'#E1306C':'rgba(255,255,255,0.1)')+';background:'+(iPerspective==='3rd'?'rgba(225,48,108,0.12)':'rgba(255,255,255,0.03)')+';color:'+(iPerspective==='3rd'?'#E1306C':'#666')+';cursor:pointer;font-family:inherit;text-align:center;transition:all 0.15s">'
+    +'<div style="font-size:18px;margin-bottom:4px">📢</div>'
+    +'<div style="font-size:11px;font-weight:'+(iPerspective==='3rd'?700:500)+'">2. Tekil Şahıs</div>'
+    +'<div style="font-size:10px;opacity:0.6;margin-top:2px">Ben anlatıyorum</div>'
+    +'<div style="font-size:9px;margin-top:4px;font-style:italic;opacity:0.5">"Meet Sarah, she came..."</div>'
+    +'</button>'
+    +'</div></div>'
+    +'<button class="btn-primary" onclick="genInterview()" id="gen-btn"'+(isLoading?' disabled':'')+'>'+( isLoading?'<span class="spin">⟳</span> Üretiliyor...':'📸 İçerik Üret')+'</button>'
+    +'</div></div>'
+    // SAĞ
+    +'<div id="iout">'+rInterviewOut()+'</div>'
+    +'</div>';
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function selFmt(id){
+  for(var i=0;i<FORMATS.length;i++){if(FORMATS[i].id===id){selFormat=FORMATS[i];break;}}
+  render();
+}
+
+function toggleAuto(){
+  autoRefresh=!autoRefresh;
+  if(autoRefresh&&interviewResult){autoTimer=setInterval(function(){genInterview(true);},6*60*1000);}
+  else{clearInterval(autoTimer);}
+  render();
+}
+
+function rInterviewOut(){
+  if(isLoading){
+    return '<div style="background:rgba(225,48,108,0.03);border:1px solid rgba(225,48,108,0.1);border-radius:16px;padding:60px;text-align:center">'
+      +'<div class="pulse" style="font-size:36px;margin-bottom:16px">🎙️</div>'
+      +'<div style="color:#E1306C;font-weight:700;font-size:15px;margin-bottom:8px">Röportaj içeriği hazırlanıyor...</div>'
+      +'<div style="color:#555;font-size:12px">Hasta hikayesi işleniyor, trendler entegre ediliyor</div>'
+      +'</div>';
+  }
+  if(!interviewResult){
+    return '<div style="background:rgba(255,255,255,0.02);border:1px dashed rgba(225,48,108,0.2);border-radius:16px;padding:60px 40px;text-align:center">'
+      +'<div style="font-size:44px;margin-bottom:14px">'+selFormat.icon+'</div>'
+      +'<div style="font-weight:700;font-size:16px;margin-bottom:6px">'+selFormat.label+'</div>'
+      +'<div style="color:#555;font-size:13px">'+selFormat.desc+'</div>'
+      +'<div style="color:#444;font-size:11px;margin-top:10px">Sol taraftan bilgileri gir ve "İçerik Üret" butonuna bas</div>'
+      +'</div>';
+  }
+  if(interviewResult.error){
+    return '<div style="background:rgba(255,0,85,0.05);border:1px solid rgba(255,0,85,0.2);border-radius:13px;padding:20px;color:#ff6b6b;text-align:center">Bir hata oluştu. Lütfen tekrar deneyin.</div>';
+  }
+
+  var variants=interviewResult.variants||[];
+  var v=variants[activeVariant]||{};
+
+  return '<div style="display:flex;flex-direction:column;gap:13px">'
+    +(interviewResult.contentNote?'<div class="algo-note"><span style="font-size:15px">📊</span><span>'+interviewResult.contentNote+'</span></div>':'')
+    +(variants.length>1?'<div style="display:flex;gap:7px">'+variants.map(function(vv,i){return '<button class="variant-tab'+(i===activeVariant?' active':'')+'" onclick="swVar('+i+')">'+esc(vv.label||'Versiyon '+(i+1))+'</button>';}).join('')+'</div>':'')
+    +'<div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden">'
+    +'<div style="padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(225,48,108,0.03);display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-weight:700;color:#E1306C;font-size:13px">'+selFormat.icon+' '+esc(v.label||selFormat.label)+'</div>'+(v.bestTime?'<div style="color:#666;font-size:11px;margin-top:1px">⏰ En iyi paylaşım: '+esc(v.bestTime)+'</div>':'')+'</div>'
+    +'<div style="display:flex;gap:7px">'
+    +'<button class="btn-ghost" onclick="genInterview()">🔄 Yenile</button>'
+    +'<button onclick="cpAll()" style="background:'+(copiedKey==='all'?'rgba(225,48,108,0.25)':'rgba(225,48,108,0.1)')+';border:1px solid rgba(225,48,108,0.3);border-radius:7px;padding:5px 12px;color:#E1306C;font-size:11px;cursor:pointer;font-weight:700;font-family:inherit">'+(copiedKey==='all'?'✓ Kopyalandı!':'📋 Tümünü Kopyala')+'</button>'
+    +'</div></div>'
+    +'<div style="padding:18px;display:flex;flex-direction:column;gap:13px">'
+    +(v.hook?'<div><div class="section-label">🪝 HOOK — İlk Cümle</div><div class="hook-box" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span>'+esc(v.hook)+'</span><button onclick="cpPart(\'hook\')" style="background:transparent;border:1px solid rgba(225,48,108,0.3);border-radius:6px;padding:3px 8px;color:#E1306C;font-size:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit">'+(copiedKey==='hook'?'✓':'Kopyala')+'</button></div></div>':'')
+    +'<div><div class="section-label">📝 İÇERİK</div><div class="content-box">'+esc(v.content||'')+' <button class="copy-btn-abs" onclick="cpPart(\'content\')">'+(copiedKey==='content'?'✓ Kopyalandı':'Kopyala')+'</button></div></div>'
+    +(v.hashtags&&v.hashtags.length?'<div><div class="section-label"># HASHTAGLER</div><div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">'+v.hashtags.map(function(h){return '<span class="tag-pill">'+esc(h)+'</span>';}).join('')+'<button onclick="cpPart(\'tags\')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:2px 11px;font-size:10px;color:#666;cursor:pointer;margin-left:4px;font-family:inherit">'+(copiedKey==='tags'?'✓':'Tümünü Kopyala')+'</button></div></div>':'')
+    +(v.postingTip?'<div class="tip-box"><strong>🎯 Paylaşım İpucu:</strong> '+esc(v.postingTip)+'</div>':'')
+    +'</div></div>'
+    +(variants.length>1?'<div class="all-versions"><div class="section-label" style="margin-bottom:10px">Tüm Versiyonlar</div>'+variants.map(function(vv,i){return '<div style="display:flex;align-items:center;gap:10px;padding:5px 0"><div style="width:20px;height:20px;border-radius:50%;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#E1306C;flex-shrink:0">'+(i+1)+'</div><div style="flex:1;color:#777;font-size:12px">'+esc(vv.label||'')+'</div><button class="btn-ghost" onclick="cpVar('+i+')">Kopyala</button></div>';}).join('')+'</div>':'')
+    +'</div>';
+}
+
+function swVar(i){activeVariant=i;var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();}
+
+function cpAll(){
+  if(!interviewResult||!interviewResult.variants)return;
+  var v=interviewResult.variants[activeVariant];if(!v)return;
+  var text=(v.hook||'')+'\n\n'+(v.content||'')+'\n\n'+((v.hashtags||[]).join(' '));
+  navigator.clipboard.writeText(text).catch(function(){});
+  copiedKey='all';var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();
+  setTimeout(function(){copiedKey=null;var o2=document.getElementById('iout');if(o2)o2.innerHTML=rInterviewOut();},2000);
+}
+
+function cpPart(key){
+  if(!interviewResult||!interviewResult.variants)return;
+  var v=interviewResult.variants[activeVariant];if(!v)return;
+  var text='';
+  if(key==='hook')text=v.hook||'';
+  else if(key==='content')text=v.content||'';
+  else if(key==='tags')text=(v.hashtags||[]).join(' ');
+  navigator.clipboard.writeText(text).catch(function(){});
+  copiedKey=key;var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();
+  setTimeout(function(){copiedKey=null;var o2=document.getElementById('iout');if(o2)o2.innerHTML=rInterviewOut();},2000);
+}
+
+function cpVar(i){
+  if(!interviewResult||!interviewResult.variants)return;
+  var v=interviewResult.variants[i];if(!v)return;
+  navigator.clipboard.writeText((v.hook||'')+'\n\n'+(v.content||'')+'\n\n'+((v.hashtags||[]).join(' '))).catch(function(){});
+}
+
+function setPerspective(p){iPerspective=p;render();}
+
+function genInterview(silent){
+  if(!silent){isLoading=true;interviewResult=null;}
+  var hotTrends=TRENDS.filter(function(t){return t.hot;}).map(function(t){return t.title+' ('+t.tag+')';}).join(', ');
+  if(!silent){var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();}
+  var btn=document.getElementById('gen-btn');
+  if(btn&&!silent){btn.disabled=true;btn.innerHTML='<span class="spin">⟳</span> Üretiliyor...';}
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:2000,
+      messages:[{role:'user',content:
+        'Sen Türkiye\'deki premium dental sağlık turizmi kliniğinin Instagram içerik yazarısın.\n\n'
+        +'İçerik Formatı: '+selFormat.label+' — '+selFormat.desc+'\n'
+        +'Dil: '+iLang+'\nTon/Vibe: '+iVibe+'\n'
+        +'Hasta Adı: '+(iName||'genel (isim kullanma)')+'\n'
+        +'Geldiği Ülke: '+(iCountry||'belirtilmedi')+'\n'
+        +'Uygulanan Tedavi: '+iTreat+'\n'
+        +'Hastanın sözleri: '+(iQuote||'yok — sen yaz')+'\n'
+        +'Ek notlar: '+(iNotes||'yok')+'\n'
+        +'Anlatım bakış açısı: '+(iPerspective==='1st'
+          ? '1. tekil şahıs — içerik HASTA\'NIN ağzından yazılacak, hasta kendi deneyimini "I / Ben" diliyle anlatıyor, sanki hasta kendisi yazıyor gibi. Örnek: "I flew to Turkey with zero expectations..." veya "Türkiye\'ye uçtuğumda hiç beklemiyordum..."'
+          : '2. tekil şahıs — içerik KLİNİK / SOSYAL MEDYA YÖNETİCİSİ ağzından yazılacak, biz hastayı anlatıyoruz. "Meet Sarah" / "Hastamız Sarah" gibi 3. şahıs tanıtım + 2. şahıs seyirciyle diyalog tonu. Örnek: "Meet Sarah from the UK — she was terrified of dentists until she found us."'
+        )+'\n'
+        +'Güncel trendler (organik entegre et): '+hotTrends+'\n\n'
+        +'Bu hasta röportajına dayalı Instagram içeriği üret. İçerik gerçek hissettirmeli, duygusal bağ kurmalı. Klişelerden kaçın. Anlatım bakış açısına KESİNLİKLE uy.\n\n'
+        +'SADECE şu JSON formatında yanıt ver:\n'
+        +'{"variants":[{"label":"Versiyon adı","hook":"İlk dikkat çeken cümle","content":"Ana içerik metni","hashtags":["#tag1","#tag2"],"postingTip":"Paylaşım ipucu","bestTime":"En iyi saat"}],"contentNote":"Algoritma notu"}'
+      }]
+    })
+  }).then(function(r){return r.json();})
+  .then(function(d){
+    var raw=(d.content&&d.content.find(function(b){return b.type==='text';}))||{text:'{}'};
+    try{interviewResult=JSON.parse(raw.text.replace(/```json|```/g,'').trim());}
+    catch(e){interviewResult={error:true};}
+    activeVariant=0;lastRefreshed=new Date();isLoading=false;
+    if(!silent)render();
+    else{var o2=document.getElementById('iout');if(o2)o2.innerHTML=rInterviewOut();}
+  })
+  .catch(function(){interviewResult={error:true};isLoading=false;if(!silent)render();});
+}
+
+// ── BAŞLAT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>

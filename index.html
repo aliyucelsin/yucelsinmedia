@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YucelSinMedia — Dental Social Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────── */
+:root{
+  --bg:       #07070b;
+  --bg2:      #101018;
+  --bg3:      #16161f;
+  --surface:  rgba(255,255,255,0.045);
+  --surface2: rgba(255,255,255,0.08);
+  --border:   rgba(255,255,255,0.10);
+  --border2:  rgba(255,255,255,0.17);
+  --text:     #f5f5fb;
+  --text2:    #a6a6c2;
+  --text3:    #74748f;
+  --accent:   #8b7dff;
+  --accent2:  #b7a5ff;
+  --green:    #10b981;
+  --green2:   #4ade80;
+  --rose:     #fb5072;
+  --amber:    #fbbf24;
+  --sky:      #56c5fb;
+  --ig:       #f0467f;
+  --tt:       #69c9d0;
+  --yt:       #ff4444;
+  --r6:       6px;
+  --r8:       8px;
+  --r10:      10px;
+  --r12:      12px;
+  --r16:      16px;
+  --r20:      20px;
+  --sidebar:  248px;
+  --shadow:   0 4px 24px rgba(0,0,0,0.45);
+  --shadow-lg:0 12px 56px rgba(0,0,0,0.65);
+  --glow:     0 0 24px rgba(139,125,255,0.28);
+  --ring:     0 0 0 3px rgba(139,125,255,0.35);
+}
+
+/* ── RESET ─────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;font-size:14.5px;line-height:1.6;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;letter-spacing:-0.01em;font-feature-settings:'cv11','ss01'}
+
+/* ── FOCUS (a11y) ──────────────────────────────────── */
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:var(--r8)}
+button,a,input,select,textarea{font-family:inherit}
+
+/* ── REDUCED MOTION ────────────────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;scroll-behavior:auto !important}
+}
+
+/* ── SCROLLBAR ─────────────────────────────────────── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.28)}
+
+/* ── SIDEBAR ───────────────────────────────────────── */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:var(--sidebar);
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:200;
+}
+.sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:200px;
+  background:radial-gradient(ellipse at 50% 0%,rgba(124,110,245,0.12),transparent 70%);
+  pointer-events:none;
+}
+.logo-wrap{
+  padding:28px 20px 22px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.logo-wordmark{
+  font-family:'Sora',sans-serif;font-size:17px;font-weight:800;
+  letter-spacing:-0.5px;color:var(--text);line-height:1.15;
+}
+.logo-wordmark span{
+  background:linear-gradient(135deg,var(--accent2),var(--sky));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.logo-tag{
+  font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:0.6px;
+  text-transform:uppercase;font-weight:500;
+}
+.logo-dot{
+  position:absolute;top:28px;right:20px;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:blink 2.5s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.nav{flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav-section{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;padding:14px 8px 7px;margin-top:4px}
+.nav-btn{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 11px;border-radius:var(--r10);border:1px solid transparent;
+  background:transparent;color:var(--text2);
+  cursor:pointer;text-align:left;font-size:13px;
+  width:100%;transition:background .18s,color .18s,border-color .18s;font-family:inherit;
+  font-weight:500;position:relative;
+}
+.nav-btn:hover:not(.active){background:var(--surface);color:var(--text)}
+.nav-btn.active{
+  background:linear-gradient(135deg,rgba(139,125,255,0.20),rgba(139,125,255,0.05));
+  color:var(--accent2);font-weight:600;
+  border:1px solid rgba(139,125,255,0.28);
+}
+.nav-btn.active::before{
+  content:'';position:absolute;left:-1px;top:50%;transform:translateY(-50%);
+  width:3px;height:55%;background:var(--accent2);border-radius:0 3px 3px 0;box-shadow:0 0 10px var(--accent2);
+}
+.nav-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.92}
+.nav-icon svg{display:block;width:18px;height:18px}
+.nav-badge{
+  margin-left:auto;background:rgba(243,63,94,0.15);color:var(--rose);
+  border:1px solid rgba(243,63,94,0.25);border-radius:20px;
+  padding:1px 7px;font-size:9px;font-weight:700;letter-spacing:0.3px;
+}
+
+.sidebar-foot{
+  padding:16px 20px;border-top:1px solid var(--border);
+  background:rgba(0,0,0,0.2);
+}
+.user-row{display:flex;align-items:center;gap:10px}
+.user-av{
+  width:34px;height:34px;border-radius:var(--r10);
+  background:linear-gradient(135deg,rgba(124,110,245,0.3),rgba(56,189,248,0.2));
+  border:1px solid rgba(124,110,245,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:var(--accent2);
+  font-family:'Sora',sans-serif;
+}
+.user-name{font-size:13px;font-weight:600;color:var(--text)}
+.user-role{font-size:11px;color:var(--text2);margin-top:1px}
+
+/* ── MAIN ──────────────────────────────────────────── */
+.main{margin-left:var(--sidebar);padding:32px 36px;max-width:1100px;min-height:100vh;flex:1}
+
+/* ── PAGE HEADER ───────────────────────────────────── */
+.page-header{margin-bottom:28px}
+.page-title{
+  font-family:'Sora',sans-serif;font-size:23px;font-weight:800;
+  color:var(--text);letter-spacing:-0.6px;margin-bottom:5px;
+}
+.page-sub{font-size:13px;color:var(--text2);font-weight:400;line-height:1.5}
+
+/* ── CARDS ─────────────────────────────────────────── */
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r16);
+}
+.card-pad{padding:18px 20px}
+.card-glass{
+  background:rgba(255,255,255,0.03);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--border);
+  border-radius:var(--r16);
+}
+
+/* ── STAT CARDS ────────────────────────────────────── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:32px}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r16);padding:20px;
+  position:relative;overflow:hidden;
+  transition:all 0.2s;cursor:default;
+}
+.stat-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--c,rgba(124,110,245,0.08)),transparent 60%);
+  pointer-events:none;
+}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-icon{
+  width:42px;height:42px;border-radius:var(--r10);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:15px;color:var(--accent2);
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+}
+.stat-value{font-family:'Sora',sans-serif;font-size:30px;font-weight:800;color:var(--text);letter-spacing:-1px;line-height:1}
+.stat-label{font-size:12.5px;color:var(--text2);margin-top:6px;font-weight:500}
+.stat-change{
+  font-size:11.5px;color:var(--green2);margin-top:9px;
+  display:flex;align-items:center;gap:4px;font-weight:600;
+}
+.stat-change::before{content:'↑';font-size:11px}
+
+/* ── BUTTONS ───────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 16px;border-radius:var(--r8);border:none;
+  font-family:inherit;font-size:13px;font-weight:600;letter-spacing:-0.01em;
+  cursor:pointer;transition:transform .15s,box-shadow .15s,background .15s,color .15s,border-color .15s;white-space:nowrap;
+}
+.btn-accent{background:linear-gradient(135deg,var(--accent),#6d5fef);color:#fff;box-shadow:0 2px 14px rgba(139,125,255,0.32)}
+.btn-accent:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(139,125,255,0.45)}
+.btn-green{background:linear-gradient(135deg,var(--green),#059669);color:#fff;box-shadow:0 2px 12px rgba(16,185,129,0.28)}
+.btn-green:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(16,185,129,0.4)}
+.btn-rose{background:linear-gradient(135deg,var(--ig),#be185d);color:#fff;box-shadow:0 2px 12px rgba(240,70,127,0.28)}
+.btn-rose:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(240,70,127,0.4)}
+.btn-ghost{background:var(--surface);border:1px solid var(--border2);color:var(--text2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-sm{padding:7px 12px;font-size:12px;border-radius:var(--r6)}
+.btn-lg{padding:13px 22px;font-size:14px;border-radius:var(--r10)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none !important;box-shadow:none !important}
+
+/* ── INPUTS ────────────────────────────────────────── */
+.input{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r8);padding:10px 12px;
+  color:var(--text);font-size:14px;outline:none;
+  width:100%;font-family:inherit;transition:border-color .15s,box-shadow .15s;
+}
+.input:focus{border-color:rgba(139,125,255,0.6);box-shadow:var(--ring)}
+.input::placeholder{color:var(--text3)}
+select.input option{background:var(--bg3)}
+textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,sans-serif;font-size:13.5px}
+
+/* ── LABELS ────────────────────────────────────────── */
+.label{font-size:11px;color:var(--text2);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:6px}
+
+/* ── TREND CARDS ───────────────────────────────────── */
+.trend-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r12);padding:13px 16px;
+  display:flex;align-items:center;gap:13px;
+  cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden;
+}
+.trend-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--pc,rgba(124,110,245,0.05)),transparent 50%);
+  opacity:0;transition:opacity 0.18s;pointer-events:none;
+}
+.trend-card:hover{border-color:var(--border2);transform:translateX(4px);box-shadow:var(--shadow)}
+.trend-card:hover::after{opacity:1}
+.trend-platform{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:60px;height:48px;border-radius:var(--r8);flex-shrink:0;
+  font-size:10px;font-weight:700;gap:3px;
+}
+.trend-info{flex:1;min-width:0}
+.trend-title{font-weight:600;font-size:13.5px;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.trend-tag{font-size:11px;color:var(--text2);margin-top:3px;font-family:'JetBrains Mono',monospace}
+.trend-stats{text-align:right;flex-shrink:0}
+.trend-growth{font-size:13px;font-weight:700;color:var(--green2)}
+.trend-views{font-size:10.5px;color:var(--text3);margin-top:2px}
+.hot-badge{
+  background:linear-gradient(135deg,#ff6b35,#ff0055);
+  border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;
+  color:#fff;letter-spacing:0.4px;flex-shrink:0;
+}
+.open-badge{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--r6);padding:4px 10px;font-size:10px;
+  color:var(--text2);flex-shrink:0;font-weight:500;
+}
+
+/* ── FILTER PILLS ──────────────────────────────────── */
+.filter-pill{
+  padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--text2);cursor:pointer;
+  font-size:12px;font-family:inherit;font-weight:500;transition:all 0.15s;
+}
+.filter-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.filter-pill:hover:not(.active){background:var(--surface);border-color:var(--border2);color:var(--text)}
+
+/* ── PATIENT CARDS ─────────────────────────────────── */
+.patient-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.patient-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r16);overflow:hidden;transition:all 0.2s;
+}
+.patient-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.patient-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.patient-name{font-weight:700;font-size:14px;color:var(--text)}
+.patient-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.status-pill{
+  border-radius:20px;padding:3px 10px;font-size:10px;font-weight:600;
+  display:inline-block;
+}
+.photo-grid{display:grid;grid-template-columns:1fr 1fr}
+.photo-slot{
+  position:relative;aspect-ratio:1;background:var(--bg3);
+  cursor:pointer;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  transition:background 0.15s;
+}
+.photo-slot:hover{background:rgba(255,255,255,0.04)}
+.photo-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.photo-label{
+  position:absolute;bottom:6px;left:6px;
+  border-radius:5px;padding:2px 8px;font-size:9px;font-weight:700;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);
+}
+
+/* ── INFLUENCER ROWS ───────────────────────────────── */
+.inf-row{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r12);padding:14px 16px;
+  display:flex;align-items:center;gap:13px;flex-wrap:wrap;
+  transition:all 0.15s;
+}
+.inf-row:hover{border-color:var(--border2);background:rgba(255,255,255,0.02)}
+.inf-av{
+  width:42px;height:42px;border-radius:var(--r10);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;font-family:'Sora',sans-serif;
+  flex-shrink:0;
+}
+.src-badge{
+  font-size:9px;font-weight:700;border-radius:var(--r6);
+  padding:2px 7px;display:inline-block;letter-spacing:0.3px;
+}
+/* gönderim durumu noktası */
+.st-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.st-dot.pending{background:var(--rose);box-shadow:0 0 9px var(--rose);animation:blink 1.1s ease-in-out infinite}
+.st-dot.sent{background:var(--green2);box-shadow:0 0 9px var(--green2)}
+.inf-row.is-sent{border-color:rgba(74,222,128,0.30);background:rgba(74,222,128,0.04)}
+.icon-btn{width:30px;height:30px;border-radius:var(--r8);border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.icon-btn:hover{background:var(--surface2);color:var(--text)}
+.icon-btn.danger:hover{background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,0.4);color:var(--rose)}
+
+/* ── MODAL ─────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:999;padding:20px;animation:fadeIn 0.2s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r20);padding:28px;
+  max-width:620px;width:100%;
+  max-height:85vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);
+  animation:slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.modal-title{font-family:'Sora',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+.modal-sub{font-size:11.5px;color:var(--text2);margin-top:2px}
+.close-btn{
+  width:30px;height:30px;border-radius:var(--r8);
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--text2);cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;flex-shrink:0;
+}
+.close-btn:hover{background:var(--surface2);color:var(--text)}
+
+/* ── FORM SECTIONS ─────────────────────────────────── */
+.form-group{margin-bottom:14px}
+.section-divider{
+  border:none;border-top:1px solid var(--border);margin:20px 0;
+}
+
+/* ── TAGS / HASHTAGS ───────────────────────────────── */
+.tag{
+  background:rgba(124,110,245,0.1);border:1px solid rgba(124,110,245,0.2);
+  border-radius:20px;padding:3px 10px;font-size:11px;color:var(--accent2);
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+}
+.tag-ig{background:rgba(225,48,108,0.1);border-color:rgba(225,48,108,0.2);color:var(--ig)}
+
+/* ── CONTENT BOXES ─────────────────────────────────── */
+.hook-box{
+  background:linear-gradient(135deg,rgba(124,110,245,0.08),rgba(56,189,248,0.04));
+  border:1px solid rgba(124,110,245,0.2);border-radius:var(--r12);
+  padding:16px;color:var(--text);font-size:15px;font-weight:600;
+  line-height:1.65;font-family:'Sora',sans-serif;
+}
+.content-box{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r12);padding:18px 18px 46px;
+  color:#dcdce8;font-size:14.5px;line-height:1.78;
+  white-space:pre-wrap;position:relative;min-height:80px;
+  font-family:'Inter',system-ui,sans-serif;letter-spacing:-0.005em;
+  max-width:68ch;
+}
+.copy-abs{
+  position:absolute;bottom:10px;right:10px;
+}
+.tip-box{
+  background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.15);
+  border-radius:var(--r10);padding:11px 14px;
+  color:var(--sky);font-size:12px;line-height:1.5;
+}
+.algo-note{
+  background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);
+  border-radius:var(--r10);padding:11px 14px;
+  color:var(--amber);font-size:12px;line-height:1.5;
+  display:flex;gap:10px;align-items:flex-start;
+}
+
+/* ── FORMAT BUTTONS ────────────────────────────────── */
+.fmt-btn{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 11px;border-radius:var(--r8);border:none;
+  background:transparent;border-left:2px solid transparent;
+  color:var(--text3);cursor:pointer;text-align:left;
+  width:100%;font-family:inherit;font-size:12.5px;transition:all 0.12s;
+}
+.fmt-btn:hover:not(.active){background:var(--surface);color:var(--text2)}
+.fmt-btn.active{
+  background:linear-gradient(90deg,rgba(225,48,108,0.12),rgba(225,48,108,0.04));
+  border-left-color:var(--ig);color:#f472b6;font-weight:600;
+}
+
+/* ── VARIANT TABS ──────────────────────────────────── */
+.var-tab{
+  flex:1;padding:9px;border-radius:var(--r8);border:none;
+  background:var(--surface);border-bottom:2px solid transparent;
+  color:var(--text3);cursor:pointer;font-size:12px;
+  transition:all 0.15s;font-family:inherit;font-weight:500;
+}
+.var-tab.active{
+  background:rgba(225,48,108,0.1);border-bottom-color:var(--ig);
+  color:#f472b6;font-weight:700;
+}
+
+/* ── PERSPECTIVE TOGGLE ────────────────────────────── */
+.persp-btn{
+  flex:1;padding:12px 8px;border-radius:var(--r10);
+  border:1.5px solid var(--border);background:var(--bg3);
+  color:var(--text3);cursor:pointer;font-family:inherit;
+  text-align:center;transition:all 0.15s;
+}
+.persp-btn.active{
+  border-color:var(--ig);background:rgba(225,48,108,0.08);color:#f9a8d4;
+}
+
+/* ── UPLOAD ZONE ───────────────────────────────────── */
+.upload-zone{
+  background:rgba(16,185,129,0.04);
+  border:1.5px dashed rgba(16,185,129,0.25);
+  border-radius:var(--r16);padding:18px;
+  transition:all 0.15s;
+}
+.upload-zone:hover{background:rgba(16,185,129,0.07);border-color:rgba(16,185,129,0.4)}
+
+/* ── TREND BAR ─────────────────────────────────────── */
+.trend-bar{
+  background:linear-gradient(90deg,rgba(225,48,108,0.06),transparent);
+  border:1px solid rgba(225,48,108,0.14);border-radius:var(--r12);
+  padding:10px 16px;margin-bottom:20px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+
+/* ── AUTO BTN ──────────────────────────────────────── */
+.auto-btn{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:6px 14px;color:var(--text2);
+  font-size:11.5px;cursor:pointer;display:flex;align-items:center;
+  gap:6px;font-family:inherit;font-weight:500;transition:all 0.15s;
+}
+.auto-btn.on{
+  background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);
+  color:var(--green2);font-weight:600;
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:blink 2s infinite}
+
+/* ── ALL-VERSIONS ──────────────────────────────────── */
+.versions-box{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r12);padding:16px;
+}
+
+/* ── SECTION LABEL ─────────────────────────────────── */
+.s-label{
+  font-size:10.5px;color:var(--text2);font-weight:700;
+  text-transform:uppercase;letter-spacing:0.9px;margin-bottom:9px;display:block;
+}
+
+/* ── ANIMATIONS ────────────────────────────────────── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse-ring{0%,100%{opacity:1}50%{opacity:0.3}}
+.spin{display:inline-block;animation:spin 0.8s linear infinite}
+.pulse{animation:pulse-ring 1.4s ease-in-out infinite;display:inline-block}
+
+/* ── LOADING STATE ─────────────────────────────────── */
+.loading-card{
+  background:var(--bg2);border:1px solid rgba(124,110,245,0.15);
+  border-radius:var(--r16);padding:60px;text-align:center;
+}
+
+/* ── EMPTY STATE ───────────────────────────────────── */
+.empty-state{
+  background:var(--bg2);border:1.5px dashed var(--border);
+  border-radius:var(--r16);padding:60px 40px;text-align:center;
+}
+
+/* ── DIVIDER ───────────────────────────────────────── */
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* ── TOOLTIP ───────────────────────────────────────── */
+[title]{cursor:pointer}
+
+/* ── SEARCH BAR ────────────────────────────────────── */
+.search-wrap{position:relative}
+.search-wrap .input{padding-left:36px}
+.search-icon{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:var(--text3);font-size:13px;pointer-events:none;
+}
+
+/* ── INTERVIEW LAYOUT (responsive grid) ────────────── */
+.interview-grid{display:grid;grid-template-columns:250px 1fr;gap:22px;align-items:start}
+
+/* ── MOBILE TOPBAR + DRAWER (gizli; sadece mobilde) ── */
+.mobile-topbar{display:none}
+.sidebar-backdrop{display:none}
+
+/* ══ RESPONSIVE ══════════════════════════════════════ */
+@media (max-width:860px){
+  .mobile-topbar{
+    display:flex;align-items:center;gap:12px;
+    position:fixed;top:0;left:0;right:0;height:56px;z-index:300;
+    background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;
+  }
+  .hamburger{
+    width:40px;height:40px;border-radius:var(--r8);flex-shrink:0;
+    border:1px solid var(--border2);background:var(--surface);color:var(--text);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .mtb-logo{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:var(--text);flex:1;letter-spacing:-0.4px}
+  .mtb-logo span{background:linear-gradient(135deg,var(--accent2),var(--sky));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+  .sidebar{
+    transform:translateX(-100%);
+    transition:transform .26s ease;
+    box-shadow:var(--shadow-lg);
+    width:min(84vw,300px);z-index:400;
+  }
+  body.sb-open .sidebar{transform:translateX(0)}
+  .sidebar-backdrop{
+    display:block;position:fixed;inset:0;background:rgba(0,0,0,0.6);
+    z-index:350;opacity:0;pointer-events:none;transition:opacity .26s;
+  }
+  body.sb-open .sidebar-backdrop{opacity:1;pointer-events:auto}
+
+  .main{margin-left:0;padding:72px 16px 32px;max-width:100%}
+  .interview-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+  .page-title{font-size:20px}
+  .modal{padding:22px}
+  .trend-bar{padding:10px 12px}
+}
+@media (max-width:480px){
+  .main{padding:70px 12px 28px}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:16px}
+  .stat-value{font-size:25px}
+  .patient-grid{grid-template-columns:1fr}
+  .inf-row{gap:10px}
+  .btn{padding:9px 13px}
+  .modal{padding:18px}
+  .page-title{font-size:18px}
+  /* trend kartı: dar ekranda taşmayı engelle */
+  .trend-tag{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .trend-views{display:none}
+  .trend-platform{width:54px;height:46px}
+  .open-badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBİL ÜST BAR (sadece mobilde görünür) -->
+<div class="mobile-topbar">
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="Menüyü aç/kapat">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
+  </button>
+  <div class="mtb-logo">Yucel<span>Sin</span>Media</div>
+  <button class="hamburger" onclick="setApiKey()" aria-label="API Ayarı">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</div>
+<div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo-wrap">
+    <div class="logo-wordmark">Yucel<span>Sin</span>Media</div>
+    <div class="logo-tag">Dental · Social · AI</div>
+    <div class="logo-dot" title="Sistem aktif"></div>
+  </div>
+
+  <nav class="nav" id="nav"></nav>
+
+  <div class="sidebar-foot">
+    <div class="user-row">
+      <div class="user-av">YS</div>
+      <div style="flex:1">
+        <div class="user-name">Yönetici</div>
+        <div class="user-role">Sosyal Medya Uzmanı</div>
+      </div>
+      <button class="close-btn" title="API Anahtarı Ayarı" onclick="setApiKey()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main" id="main"></main>
+
+<script>
+/* ════════════════════════════════════════════════════
+   VERİLER
+════════════════════════════════════════════════════ */
+// Lucide tarzı, tutarlı inline SVG ikon seti
+var ICONS={
+  dashboard:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  trend:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  gallery:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-4.5-4.5L5 21"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  bulb:'<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+  mic:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  instagram:'<rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>',
+  tiktok:'<path d="M9 18V6l8-2v9"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="15" r="3"/>',
+  youtube:'<rect x="2" y="5" width="20" height="14" rx="4"/><polygon points="10 9 16 12 10 15" fill="currentColor" stroke="none"/>',
+  arrowUp:'<line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/>',
+  trash:'<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  video:'<path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/>',
+  layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+  quote:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  swap:'<polyline points="17 11 21 7 17 3"/><line x1="21" y1="7" x2="9" y2="7"/><polyline points="7 21 3 17 7 13"/><line x1="15" y1="17" x2="3" y2="17"/>',
+  smartphone:'<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>',
+  help:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+  film:'<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M17 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+};
+function ic(name,size){var s=size||18;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[name]||'')+'</svg>';}
+
+var TABS=[
+  {label:'Dashboard',       icon:'dashboard', section:'Genel'},
+  {label:'Trend Takip',     icon:'trend',     section:'Genel'},
+  {label:'Hasta Galerisi',  icon:'gallery',   section:'Araçlar'},
+  {label:'Influencer Hub',  icon:'users',     section:'Araçlar'},
+  {label:'İçerik Önerileri',icon:'bulb',      section:'Araçlar'},
+  {label:'Hasta Röportajları',icon:'mic',     section:'Araçlar',badge:'AI'}
+];
+
+// 🔎 Web araştırmasına dayalı gerçek trendler — Haziran 2026 (görüntülenme rakamları yaklaşıktır)
+var TRENDS=[
+  {platform:'TikTok',   title:'Turkey Teeth (viral olgu)',        tag:'#turkeyteeth',          views:'700M+',growth:'Viral',     hot:true, pc:'#69C9D0',url:'https://www.tiktok.com/search?q=%23turkeyteeth'},
+  {platform:'Instagram',title:'Doğal Gülüş (karşı-trend)',         tag:'#naturalsmile',         views:'480M', growth:'Yükselişte',hot:true, pc:'#E1306C',url:'https://www.instagram.com/explore/tags/naturalsmile/'},
+  {platform:'TikTok',   title:'Veneers Check (prep videoları)',    tag:'#veneerscheck',         views:'320M', growth:'Viral',     hot:true, pc:'#69C9D0',url:'https://www.tiktok.com/search?q=%23veneerscheck'},
+  {platform:'YouTube',  title:'Türkiye Diş Tatili Vlog',           tag:'turkey teeth vlog',     views:'60M',  growth:'Yüksek',    hot:true, pc:'#FF4444',url:'https://www.youtube.com/results?search_query=turkey+teeth+vlog'},
+  {platform:'Instagram',title:'Hollywood Smile 2.0',               tag:'#hollywoodsmile',       views:'1.1B', growth:'Yüksek',    hot:true, pc:'#E1306C',url:'https://www.instagram.com/explore/tags/hollywoodsmile/'},
+  {platform:'TikTok',   title:'Kompozit Bonding (minimal işlem)',  tag:'#compositebonding',     views:'540M', growth:'Yükselişte',hot:true, pc:'#69C9D0',url:'https://www.tiktok.com/search?q=%23compositebonding'},
+  {platform:'YouTube',  title:'Dentist Reacts (uzman tepkisi)',    tag:'dentist reacts turkey teeth',views:'250M',growth:'Yüksek',hot:true, pc:'#FF4444',url:'https://www.youtube.com/results?search_query=dentist+reacts+turkey+teeth'},
+  {platform:'Instagram',title:'Diş Beyazlatma',                    tag:'#teethwhitening',       views:'2.1B', growth:'Stabil',    hot:false,pc:'#E1306C',url:'https://www.instagram.com/explore/tags/teethwhitening/'},
+  {platform:'Instagram',title:'AI Gülüş Tasarımı (DSD)',           tag:'#digitalsmiledesign',   views:'95M',  growth:'Yükselişte',hot:true, pc:'#E1306C',url:'https://www.instagram.com/explore/tags/digitalsmiledesign/'},
+  {platform:'TikTok',   title:'Smile Makeover Dönüşümü',           tag:'#smilemakeover',        views:'1.4B', growth:'Yüksek',    hot:true, pc:'#69C9D0',url:'https://www.tiktok.com/search?q=%23smilemakeover'},
+  {platform:'YouTube',  title:'Veneer: Türkiye vs İngiltere',      tag:'veneers turkey vs uk cost',views:'18M',growth:'Yüksek',   hot:true, pc:'#FF4444',url:'https://www.youtube.com/results?search_query=veneers+turkey+vs+uk+cost'},
+  {platform:'Instagram',title:'Diş Eti Estetiği',                  tag:'#gumcontouring',        views:'210M', growth:'Yükselişte',hot:false,pc:'#E1306C',url:'https://www.instagram.com/explore/tags/gumcontouring/'},
+  {platform:'TikTok',   title:'Snap-On Smile (uyarı içerikleri)',  tag:'#snaponsmile',          views:'180M', growth:'Tartışmalı',hot:false,pc:'#69C9D0',url:'https://www.tiktok.com/search?q=%23snaponsmile'},
+  {platform:'YouTube',  title:'Turkey Teeth: Gerçekler & Riskler', tag:'turkey teeth truth risks',views:'25M',growth:'Yüksek',  hot:true, pc:'#FF4444',url:'https://www.youtube.com/results?search_query=turkey+teeth+truth+risks'},
+  {platform:'Instagram',title:'Zirkonyum / E-max Kaplama',         tag:'#emaxveneers',          views:'140M', growth:'Stabil',    hot:false,pc:'#E1306C',url:'https://www.instagram.com/explore/tags/emaxveneers/'},
+  {platform:'TikTok',   title:'All-on-4 İmplant',                  tag:'#allon4',               views:'430M', growth:'Yükselişte',hot:false,pc:'#69C9D0',url:'https://www.tiktok.com/search?q=%23allon4'}
+];
+
+var INFLUENCERS=[
+  {handle:'@burcuerzincanli',platform:'Instagram',followers:'2.1M',niche:'Yaşam Tarzı / Güzellik',country:'🇹🇷 Türkiye',av:'BE',eng:'4.2%'},
+  {handle:'@duyguasena',     platform:'Instagram',followers:'1.8M',niche:'Sağlık & Estetik',       country:'🇹🇷 Türkiye',av:'DA',eng:'3.8%'},
+  {handle:'@neslihanatagul', platform:'Instagram',followers:'3.4M',niche:'Yaşam Tarzı',            country:'🇹🇷 Türkiye',av:'NA',eng:'2.9%'},
+  {handle:'@huda.beauty',    platform:'Instagram',followers:'54M', niche:'Güzellik & Estetik',     country:'🌍 Global',  av:'HB',eng:'1.4%'},
+  {handle:'@katerinagray',   platform:'TikTok',   followers:'12M', niche:'Sağlık & Dönüşüm',      country:'🌍 Global',  av:'KG',eng:'6.7%'},
+  {handle:'@dr.karishma',    platform:'Instagram',followers:'890K',niche:'Dental & Estetik',       country:'🌍 Global',  av:'DK',eng:'5.1%'},
+  // ── Müzik sanatçıları / gruplar (booking & yönetim e-postaları) ──
+  {name:'Dua Lipa',country:'İngiltere',followers:'87M',email:'commercial@caa.com',note:'📅 10 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Travis Scott',country:'ABD',followers:'57M',email:'brands@wmeagency.com',note:'📅 15 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'J Balvin',country:'Kolombiya',followers:'52M',email:'brands@wmeagency.com',note:'📅 26 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Wiz Khalifa',country:'ABD',followers:'40M',email:'commercial@caa.com',note:'📅 7 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Marshmello',country:'ABD',followers:'30M',email:'partnerships@theshalizigroup.com',note:'📅 1 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Amr Diab',country:'Mısır',followers:'30M',email:'info@nayformedia.com',note:'📅 18 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Ricky Martin',country:'Porto Riko',followers:'18.5M',email:'brands@wmeagency.com',note:'📅 22 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Tiesto',country:'Hollanda',followers:'7.5M',email:'partnerships@redlightmanagement.com',note:'📅 26 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Gorillaz',country:'İngiltere',followers:'4.8M',email:'info@elevenmgmt.com',note:'📅 20 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Black Coffee',country:'Güney Afrika',followers:'4.5M',email:'bookings@blackcoffee.dj',note:'📅 16 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Cigarettes After Sex',country:'ABD',followers:'4.5M',email:'info@majesticmusic.com',note:'📅 12 Ekim 2026',niche:'Müzik / Sanatçı'},
+  {name:'Peggy Gou',country:'Güney Kore',followers:'4.2M',email:'brands@wmeagency.com',note:'📅 4 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Aurora',country:'Norveç',followers:'3.3M',email:'post@petroleumrecords.no',note:'📅 22 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Megadeth',country:'ABD',followers:'3.2M',email:'info@5bam.com',note:'📅 19 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Charlotte de Witte',country:'Belçika',followers:'3M',email:'partnerships@kntxt.be',note:'📅 11 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Andrea Bocelli',country:'İtalya',followers:'2.5M',email:'info@maverick.com',note:'📅 8 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Amelie Lens',country:'Belçika',followers:'2.2M',email:'booking@lenske.com',note:'📅 5 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Scorpions',country:'Almanya',followers:'2.1M',email:'info@artistgrp.com',note:'📅 9 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Laura Pergolizzi (LP)',country:'ABD',followers:'2.1M',email:'management@iamlp.com',note:'📅 14 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Anyma',country:'İtalya',followers:'2M',email:'brands@wmeagency.com',note:'📅 28 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Tom Odell',country:'İngiltere',followers:'1.8M',email:'info@urokmanagement.com',note:'📅 25 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Alice Cooper',country:'ABD',followers:'1.7M',email:'info@aliveenterprises.com',note:'📅 15 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Boris Brejcha',country:'Almanya',followers:'1.6M',email:'booking@fckng-serious.de',note:'📅 20 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Calum Scott',country:'İngiltere',followers:'1.5M',email:'info@lighthousemgmt.com',note:'📅 8 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Three Days Grace',country:'Kanada',followers:'1.5M',email:'brands@wmeagency.com',note:'📅 26 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Solomun',country:'Bosna-Hersek / Almanya',followers:'1.4M',email:'booking@diynamic.com',note:'📅 29 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Lamb of God',country:'ABD',followers:'1.4M',email:'info@5bam.com',note:'📅 9 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Tale Of Us',country:'İtalya',followers:'1.2M',email:'brands@wmeagency.com',note:'📅 5 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Offspring',country:'ABD',followers:'1.2M',email:'brands@wmeagency.com',note:'📅 10 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Steve Vai',country:'ABD',followers:'1.2M',note:'📅 14 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Mac DeMarco',country:'Kanada',followers:'1.1M',email:'info@panachebooking.com',note:'📅 12 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Patti Smith',country:'ABD',followers:'1M',email:'commercial@caa.com',note:'📅 11 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Shaggy',country:'Jamaika',followers:'1M',email:'info@cherrytreemusiccompany.com',note:'📅 30 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Nico Moreno',country:'Fransa',followers:'1M',email:'booking@exhalerecords.com',note:'📅 14 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Babymetal',country:'Japonya',followers:'1M',email:'contact@amuse.co.jp',note:'📅 1 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Trivium',country:'ABD',followers:'1M',email:'info@5bam.com',note:'📅 21 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Black Keys',country:'ABD',followers:'1M',email:'info@fullstopmgmt.com',note:'📅 2 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Artbat',country:'Ukrayna',followers:'950K',email:'brands@wmeagency.com',note:'📅 15 Mayıs 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Prodigy',country:'İngiltere',followers:'700K',email:'brands@wmeagency.com',note:'📅 23 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Jack White',country:'ABD',followers:'650K',email:'info@monotonemgmt.com',note:'📅 16 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Two Door Cinema Club',country:'İrlanda',followers:'600K',email:'info@prodigyartists.com',note:'📅 4 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Moby',country:'ABD',followers:'500K',email:'brands@wmeagency.com',note:'📅 18 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Wet Leg',country:'İngiltere',followers:'450K',email:'licensing@dominopublishing.com',note:'📅 29 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'In Flames',country:'İsveç',followers:'450K',email:'info@nuclearblast.com',note:'📅 22 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Kooks',country:'İngiltere',followers:'450K',email:'info@variousartistsmanagement.com',note:'📅 18 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Marcus Miller',country:'ABD',followers:'380K',email:'branding@icmpartners.com',note:'📅 14 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Kasabian',country:'İngiltere',followers:'350K',email:'brands@wmeagency.com',note:'📅 15 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Monolink',country:'Almanya',followers:'350K',email:'brands@wmeagency.com',note:'📅 25 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Thievery Corporation',country:'ABD',followers:'320K',email:'management@eslmusic.com',note:'📅 11 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Sex Pistols',country:'İngiltere',followers:'300K',email:'partnerships@livenation.com',note:'📅 24 Mayıs 2026',niche:'Müzik / Sanatçı'},
+  {name:'Asaf Avidan',country:'İsrail',followers:'280K',email:'info@telmavar.com',note:'📅 24 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Kills',country:'ABD / İngiltere',followers:'250K',email:'licensing@dominorecordco.com',note:'📅 8 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Kneecap',country:'İrlanda',followers:'250K',email:'info@atc-live.com',note:'📅 27 Mayıs 2026',niche:'Müzik / Sanatçı'},
+  {name:'Faun',country:'Almanya',followers:'250K',email:'info@extratours-konzertbuero.de',note:'📅 25 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Diana Krall',country:'Kanada',followers:'250K',email:'brands@wmeagency.com',note:'📅 21 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'Wolf Alice',country:'İngiltere',followers:'220K',email:'info@dirtyhit.co.uk',note:'📅 10 Ekim 2026',niche:'Müzik / Sanatçı'},
+  {name:'Gipsy Kings',country:'Fransa',followers:'200K',email:'info@knittingfactory.com',note:'📅 19 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'Chris Isaak',country:'ABD',followers:'150K',email:'commercial@caa.com',note:'📅 12 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Suede',country:'İngiltere',followers:'150K',email:'brands@wmeagency.com',note:'📅 28 Ağustos 2026',niche:'Müzik / Sanatçı'},
+  {name:'Amenra',country:'Belçika',followers:'150K',email:'info@doomstarbookings.com',note:'📅 21 Mayıs 2026',niche:'Müzik / Sanatçı'},
+  {name:'Yann Tiersen',country:'Fransa',followers:'150K',email:'licensing@mute.com',note:'📅 11 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Savatage',country:'ABD',followers:'100K',note:'📅 3 Temmuz 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Cardigans',country:'İsveç',followers:'100K',note:'📅 7 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'Boa',country:'İngiltere',followers:'100K',note:'📅 17 Ekim 2026',niche:'Müzik / Sanatçı'},
+  {name:'Alphaville',country:'Almanya',followers:'80K',note:'📅 6 Haziran 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Pineapple Thief',country:'İngiltere',followers:'70K',email:'licensing@kscopemusic.com',note:'📅 5 Ekim 2026',niche:'Müzik / Sanatçı'},
+  {name:'The Gathering',country:'Hollanda',followers:'50K',email:'info@psychonautrecords.com',note:'📅 12 Eylül 2026',niche:'Müzik / Sanatçı'},
+  {name:'John Maus',country:'ABD',followers:'50K',email:'info@ribbonmusic.com',note:'📅 3 Ekim 2026',niche:'Müzik / Sanatçı'}
+];
+
+// Tanınan sanatçıların Instagram hesapları (isimle eşleştirilip yukarıdaki kayıtlara eklenir)
+var IG_HANDLES={
+  'Dua Lipa':'@dualipa','Travis Scott':'@travisscott','J Balvin':'@jbalvin','Wiz Khalifa':'@wizkhalifa',
+  'Marshmello':'@marshmello','Amr Diab':'@amrdiab','Ricky Martin':'@ricky_martin','Tiesto':'@tiesto',
+  'Gorillaz':'@gorillaz','Black Coffee':'@realblackcoffee','Cigarettes After Sex':'@cigarettesaftersex',
+  'Peggy Gou':'@peggygou_','Aurora':'@auroramusic','Megadeth':'@megadeth','Charlotte de Witte':'@charlottedewittemusic',
+  'Andrea Bocelli':'@andreabocelliofficial','Amelie Lens':'@amelie_lens','Scorpions':'@scorpions',
+  'Laura Pergolizzi (LP)':'@iamlp','Tom Odell':'@tomodell','Alice Cooper':'@alicecooper','Boris Brejcha':'@borisbrejcha',
+  'Calum Scott':'@calumscott','Three Days Grace':'@threedaysgrace','Solomun':'@solomun','Lamb of God':'@lambofgod',
+  'Tale Of Us':'@taleofus','The Offspring':'@offspring','Steve Vai':'@stevevaihimself','Mac DeMarco':'@macdemarco',
+  'Patti Smith':'@thisispattismith','Shaggy':'@direalshaggy','Babymetal':'@babymetal_official','Trivium':'@trivium',
+  'The Black Keys':'@theblackkeys','Artbat':'@artbatmusic','The Prodigy':'@the_prodigy_official','Jack White':'@officialjackwhite',
+  'Two Door Cinema Club':'@twodoorcinemaclub','Moby':'@moby','Wet Leg':'@wetlegband','In Flames':'@inflames',
+  'The Kooks':'@thekooksmusic','Marcus Miller':'@marcusmillerofficial','Kasabian':'@kasabianofficial','Monolink':'@monolink',
+  'The Kills':'@thekills','Wolf Alice':'@wolfalicemusic','Chris Isaak':'@chrisisaak','The Pineapple Thief':'@thepineapplethief'
+};
+INFLUENCERS.forEach(function(inf){
+  if(IG_HANDLES[inf.name]){ inf.handle=IG_HANDLES[inf.name]; if(!inf.platform)inf.platform='Instagram'; }
+});
+
+var FORMATS=[
+  {id:'reel',        label:'Reel Açıklaması',  icon:'video',     desc:'Video altı caption + hashtag'},
+  {id:'carousel',    label:'Carousel Hikayesi', icon:'layers',    desc:'Slayt slayt hasta yolculuğu'},
+  {id:'quote',       label:'Alıntı Postu',      icon:'quote',     desc:'Güçlü bir cümle öne çıkar'},
+  {id:'before_after',label:'Önce / Sonra',      icon:'swap',      desc:'Dönüşüm odaklı caption'},
+  {id:'story',       label:'Story Metni',       icon:'smartphone',desc:'Hikaye serisi için kısa metinler'},
+  {id:'testimonial', label:'Referans Postu',    icon:'star',      desc:'Sosyal kanıt odaklı caption'},
+  {id:'qa',          label:'Soru & Cevap',      icon:'help',      desc:'Röportaj soruları + yanıtlar'},
+  {id:'vlog',        label:'Vlog Tanıtımı',     icon:'film',      desc:'YouTube / Reels intro metni'}
+];
+
+var TREATMENTS=['Veneer','Zirkonyum Kaplama','Hollywood Smile','İmplant','Diş Beyazlatma','Gülüş Tasarımı','All-on-4','All-on-6'];
+var LANGS=['English','Türkçe','Deutsch','Arabic (العربية)','French','Italian'];
+var VIBES=['Duygusal & İlham Verici','Samimi & Gerçekçi','Heyecanlı & Enerjik','Güven Verici & Sakin'];
+var CONTENT_IDEAS=[
+  {type:'Reel / TikTok', title:'48 Saatte Mükemmel Gülüş',          desc:'Varış, klinik, sonuç — hızlı montaj',             platforms:['Instagram','TikTok'],priority:'Yüksek'},
+  {type:'Carousel',      title:'Türkiye\'de Diş Neden Ucuz?',        desc:'İngiltere/Almanya kıyaslamalı infografik',        platforms:['Instagram'],          priority:'Yüksek'},
+  {type:'YouTube Vlog',  title:'İngiliz Hasta Tam Deneyimi',         desc:'Uçuş + otel + klinik + sonuç döngüsü',           platforms:['YouTube'],            priority:'Orta'},
+  {type:'Story Serisi',  title:'Veneer mi Zirkonyum mu?',            desc:'Doktor ile canlı Q&A hikaye formatında',          platforms:['Instagram'],          priority:'Orta'},
+  {type:'Reel',          title:'Hastanın İlk Gülüş Anı',            desc:'Aynada gülüşünü ilk gördüğü o an',               platforms:['Instagram','TikTok'],priority:'Yüksek'}
+];
+
+var PC={Instagram:'#E1306C',TikTok:'#69C9D0',YouTube:'#FF4444'};
+var PRC={Yüksek:'#10b981',Orta:'#f59e0b',Düşük:'#6b7280'};
+
+/* ════════ DURUM ════════════════════════════════════ */
+var activeTab=0;
+var patients=[
+  {id:1,name:'Sarah Mitchell',date:'Oca 2025',treatment:'Hollywood Smile',status:'Tamamlandı',before:null,after:null},
+  {id:2,name:'James Thompson',date:'Mar 2025',treatment:'Veneer (18 diş)',status:'Devam Ediyor',before:null,after:null},
+  {id:3,name:'Emma König',    date:'Nis 2025',treatment:'Zirkonyum Kaplama',status:'Tamamlandı',before:null,after:null}
+];
+var myInfluencers=[];
+var contentIdeas=CONTENT_IDEAS.slice();
+var selFormat=FORMATS[0];
+var iLang='English',iVibe='Duygusal & İlham Verici',iTreat='Veneer';
+var iName='',iCountry='',iQuote='',iNotes='',iPerspective='1st';
+var interviewResult=null,activeVariant=0,isLoading=false;
+var autoRefresh=false,autoTimer=null,lastRefreshed=null,copiedKey=null;
+var uploadPid=null,uploadType=null;
+var excelInfluencers=[];
+var msgModal=null,msgType='mail',msgLoading=false,msgContent='',msgPurpose='işbirliği';
+var infSearch='',infFilter='Tümü';
+var apiModal=false;
+var sentInf={},deletedInf={};   // gönderildi / silindi durumları (isim/handle/email anahtarıyla)
+
+/* ════════ HELPERS ══════════════════════════════════ */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// AI yanıtından JSON'u toleranslı şekilde çıkar (markdown fence + çevre metni temizler)
+function parseLoose(text){
+  var t=String(text||'').replace(/```json/gi,'').replace(/```/g,'').trim();
+  try{return JSON.parse(t);}catch(e){}
+  var s=t.indexOf('{'),a=t.indexOf('['),start=-1,open='{',close='}';
+  if(a!==-1&&(a<s||s===-1)){start=a;open='[';close=']';}else if(s!==-1){start=s;}
+  if(start!==-1){var end=t.lastIndexOf(close);if(end>start){try{return JSON.parse(t.slice(start,end+1));}catch(e2){}}}
+  throw new Error('Yanıt JSON olarak okunamadı. Modeli/anahtarı değiştirip tekrar deneyin.');
+}
+
+/* ════════ AI API (çoklu sağlayıcı: Gemini · Groq · Claude · OpenAI) ═══════════════════════════════ */
+var ANTHROPIC_MODEL='claude-sonnet-4-20250514';
+var OPENAI_MODEL='gpt-4o-mini';
+var GEMINI_MODEL='gemini-2.0-flash';            // ücretsiz katman, kart gerekmez
+var GROQ_MODEL='llama-3.3-70b-versatile';       // ücretsiz
+function getApiKey(){return localStorage.getItem('ysm_api_key')||'';}
+function aiProvider(k){
+  k=k||getApiKey();
+  if(k.indexOf('sk-ant-')===0)return 'claude';
+  if(k.indexOf('AIza')===0)return 'gemini';
+  if(k.indexOf('gsk_')===0)return 'groq';
+  if(k.indexOf('sk-')===0)return 'openai';
+  return 'unknown';
+}
+var AI_NAMES={claude:'Claude',gemini:'Google Gemini',groq:'Groq',openai:'OpenAI',unknown:'Bilinmiyor'};
+function setApiKey(){apiModal=true;render();}          // uygulama içi pencereyi aç (prompt yerine)
+function closeApiModal(){apiModal=false;render();}
+function saveApiModal(){
+  var el=document.getElementById('api-key-input');
+  var k=el?el.value.trim():'';
+  if(!k){var w=document.getElementById('api-warn');if(w){w.style.display='block';w.textContent='Lütfen bir anahtar yapıştırın.';}return;}
+  localStorage.setItem('ysm_api_key',k);
+  var p=aiProvider(k);
+  if(p==='openai'){
+    var w2=document.getElementById('api-warn');
+    if(w2){w2.style.display='block';w2.innerHTML='⚠ Bu bir OpenAI anahtarı — tarayıcıdan ÇALIŞMAZ (CORS). Lütfen ücretsiz <strong>Gemini (AIza...)</strong> veya <strong>Groq (gsk_...)</strong> kullanın.';}
+    return; // kaydı tut ama kapatma, kullanıcı düzeltsin
+  }
+  apiModal=false;render();
+}
+function clearApiModal(){localStorage.removeItem('ysm_api_key');apiModal=false;render();}
+function rApiModal(){
+  var cur=getApiKey(),p=cur?aiProvider(cur):'';
+  return '<div class="modal-overlay" onclick="closeApiModal()">'
+    +'<div class="modal" onclick="event.stopPropagation()" style="max-width:540px">'
+    +'<div class="modal-head"><div><div class="modal-title">AI API Anahtarı</div><div class="modal-sub">Anahtar yalnızca bu tarayıcıda saklanır · hiçbir yere gönderilmez</div></div><button class="close-btn" onclick="closeApiModal()">✕</button></div>'
+    +'<div style="display:flex;flex-direction:column;gap:14px">'
+    +'<div class="tip-box" style="line-height:1.65"><strong>★ Ücretsiz (önerilen) — Google Gemini</strong><br>'
+      +'<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:var(--sky);font-weight:600">aistudio.google.com/apikey</a> → “Create API key”. Kredi kartı gerekmez. Anahtar <strong>AIza…</strong> ile başlar.</div>'
+    +'<div><label class="label" for="api-key-input">API Anahtarı</label>'
+      +'<input id="api-key-input" class="input" type="text" autocomplete="off" spellcheck="false" placeholder="AIza…  /  gsk_…  /  sk-ant-…" value="'+esc(cur)+'" style="font-family:\'JetBrains Mono\',monospace"/></div>'
+    +'<div id="api-warn" style="display:none;background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.25);border-radius:var(--r10);padding:10px 13px;color:#fda4af;font-size:12px;line-height:1.5"></div>'
+    +(cur?'<div style="font-size:12px;color:var(--text2)">Kayıtlı sağlayıcı: <strong style="color:var(--text)">'+AI_NAMES[p]+'</strong></div>':'')
+    +'<div style="display:flex;gap:8px"><button class="btn btn-accent btn-lg" style="flex:1" onclick="saveApiModal()">Kaydet</button>'
+      +(cur?'<button class="btn btn-ghost btn-lg" onclick="clearApiModal()">Sil</button>':'')+'</div>'
+    +'<div style="font-size:11.5px;color:var(--text3);line-height:1.6">Diğer ücretsiz: <strong>Groq</strong> → <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="color:var(--text2)">console.groq.com/keys</a> (gsk_…). '
+      +'<br>⚠ OpenAI/ChatGPT anahtarları tarayıcıdan çalışmaz.</div>'
+    +'</div></div></div>';
+}
+// Anahtar türüne göre uygun sağlayıcıya çağrı. Metin döndürür, hata fırlatır.
+// jsonMode=true → desteklenen sağlayıcılarda katı JSON çıktısı zorlanır.
+function callAI(userPrompt,maxTokens,jsonMode){
+  var key=getApiKey();
+  if(!key){ setApiKey(); return Promise.reject(new Error('Lütfen açılan pencereden API anahtarınızı girip tekrar deneyin.')); }
+  var prov=aiProvider(key);
+  function fail(r,d){
+    var m=(d&&d.error&&d.error.message)||('HTTP '+r.status);
+    if(r.status===401||r.status===403)m='API anahtarı geçersiz. ⚙ ile güncelleyin.';
+    if(r.status===429)m='Ücretsiz kota/limit doldu (429). Biraz bekleyip tekrar deneyin.';
+    throw new Error(m);
+  }
+  function corsGuard(e){
+    if(e&&/Failed to fetch/i.test(e.message||''))throw new Error('Bu sağlayıcı tarayıcıdan çağrılamıyor (CORS). Ücretsiz Google Gemini (AIza...) anahtarı kullanın.');
+    throw e;
+  }
+  if(prov==='claude'){
+    return fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:ANTHROPIC_MODEL,max_tokens:maxTokens||1000,messages:[{role:'user',content:userPrompt}]})
+    }).then(function(r){return r.json().then(function(d){ if(!r.ok)fail(r,d); return (d.content&&d.content.find(function(b){return b.type==='text';})||{}).text||''; });}).catch(corsGuard);
+  }
+  if(prov==='gemini'){
+    var gcfg={maxOutputTokens:maxTokens||1000,temperature:0.9};
+    if(jsonMode)gcfg.responseMimeType='application/json';
+    return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+GEMINI_MODEL+':generateContent?key='+encodeURIComponent(key),{
+      method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:userPrompt}]}],generationConfig:gcfg})
+    }).then(function(r){return r.json().then(function(d){
+      if(!r.ok)fail(r,d);
+      var c=d.candidates&&d.candidates[0];
+      if(c&&c.finishReason==='SAFETY')throw new Error('İçerik güvenlik filtresine takıldı. Notları/sözleri yumuşatıp tekrar deneyin.');
+      return (c&&c.content&&c.content.parts&&c.content.parts.map(function(pt){return pt.text||'';}).join(''))||'';
+    });}).catch(corsGuard);
+  }
+  if(prov==='groq'){
+    var gbody={model:GROQ_MODEL,max_tokens:maxTokens||1000,messages:[{role:'user',content:userPrompt}]};
+    if(jsonMode)gbody.response_format={type:'json_object'};
+    return fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+key},
+      body:JSON.stringify(gbody)
+    }).then(function(r){return r.json().then(function(d){ if(!r.ok)fail(r,d); return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||''; });}).catch(corsGuard);
+  }
+  // OpenAI / bilinmeyen (tarayıcıdan doğrudan CORS ile engellenir)
+  var obody={model:OPENAI_MODEL,max_tokens:maxTokens||1000,messages:[{role:'user',content:userPrompt}]};
+  if(jsonMode)obody.response_format={type:'json_object'};
+  return fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+key},
+    body:JSON.stringify(obody)
+  }).then(function(r){return r.json().then(function(d){ if(!r.ok)fail(r,d); return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||''; });}).catch(function(e){
+    if(e&&/Failed to fetch/i.test(e.message||''))throw new Error('OpenAI tarayıcıdan doğrudan çağrılamıyor (CORS). Ücretsiz Google Gemini (AIza...) anahtarı kullanın.');
+    throw e;
+  });
+}
+
+/* ════════ KALICI DEPOLAMA (localStorage) ═══════════ */
+function saveState(){
+  try{
+    localStorage.setItem('ysm_patients',JSON.stringify(patients));
+    localStorage.setItem('ysm_myInfluencers',JSON.stringify(myInfluencers));
+    localStorage.setItem('ysm_sentInf',JSON.stringify(sentInf));
+    localStorage.setItem('ysm_deletedInf',JSON.stringify(deletedInf));
+  }catch(e){/* kota dolabilir (fotoğraflar büyükse) — sessiz geç */}
+}
+function loadState(){
+  try{
+    var p=localStorage.getItem('ysm_patients');if(p)patients=JSON.parse(p);
+    var m=localStorage.getItem('ysm_myInfluencers');if(m)myInfluencers=JSON.parse(m);
+    var s=localStorage.getItem('ysm_sentInf');if(s)sentInf=JSON.parse(s);
+    var d=localStorage.getItem('ysm_deletedInf');if(d)deletedInf=JSON.parse(d);
+  }catch(e){}
+}
+
+/* ════════ RENDER CORE ══════════════════════════════ */
+function render(){
+  var sections={};
+  TABS.forEach(function(t){if(!sections[t.section])sections[t.section]=[];sections[t.section].push(t);});
+  var navHTML='';
+  Object.keys(sections).forEach(function(sec){
+    navHTML+='<div class="nav-section">'+sec+'</div>';
+    sections[sec].forEach(function(t){
+      var i=TABS.indexOf(t);
+      navHTML+='<button class="nav-btn'+(i===activeTab?' active':'')+'" onclick="sw('+i+')">'
+        +'<span class="nav-icon">'+ic(t.icon)+'</span>'
+        +'<span>'+t.label+'</span>'
+        +(t.badge?'<span class="nav-badge">'+t.badge+'</span>':'')
+        +'</button>';
+    });
+  });
+  document.getElementById('nav').innerHTML=navHTML;
+  var pages=[rDash,rTrends,rPatients,rInfluencers,rContent,rInterview];
+  document.getElementById('main').innerHTML=pages[activeTab]()+(apiModal?rApiModal():'');
+}
+function sw(i){activeTab=i;document.body.classList.remove('sb-open');window.scrollTo(0,0);render();}
+function toggleSidebar(){document.body.classList.toggle('sb-open');}
+
+/* ════════════════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════════════════ */
+function rDash(){
+  var stats=[
+    {label:'Toplam Hasta',  value:'142',change:'+12 bu ay',   icon:'user', c:'rgba(139,125,255,0.16)'},
+    {label:'Trend İzlendi', value:'38', change:'3 bu hafta',   icon:'trend',c:'rgba(16,185,129,0.14)'},
+    {label:'Influencer',    value:'24', change:'6 görüşmede',  icon:'star', c:'rgba(245,158,11,0.14)'},
+    {label:'İçerik Fikri',  value:'67', change:'15 bu hafta',  icon:'bulb', c:'rgba(86,197,251,0.14)'}
+  ];
+  var allT=TRENDS.slice().sort(function(a,b){return(b.hot?1:0)-(a.hot?1:0);});
+  return '<div class="page-header">'
+    +'<div class="page-title">Genel Bakış</div>'
+    +'<div class="page-sub">'+new Date().toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+'</div>'
+    +'</div>'
+    +'<div class="stat-grid">'
+    +stats.map(function(s){
+      return '<div class="stat-card" style="--c:'+s.c+'">'
+        +'<div class="stat-icon">'+ic(s.icon,20)+'</div>'
+        +'<div class="stat-value">'+s.value+'</div>'
+        +'<div class="stat-label">'+s.label+'</div>'
+        +'<div class="stat-change">'+s.change+'</div>'
+        +'</div>';
+    }).join('')
+    +'</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
+    +'<div style="font-weight:700;font-size:14px;color:var(--text)">Bu Haftanın Trend İçerikleri <span style="font-weight:500;font-size:11px;color:var(--text3)">· 🔎 web araştırması · Haz 2026</span></div>'
+    +'<div style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:5px"><span style="color:var(--green2)">↑</span> Tıkla → platforma git</div>'
+    +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px">'+allT.map(tHTML).join('')+'</div>';
+}
+
+function tHTML(t){
+  var pIcon=t.platform==='Instagram'?'instagram':t.platform==='TikTok'?'tiktok':'youtube';
+  return '<div class="trend-card" onclick="window.open(\''+t.url+'\',\'_blank\')" style="--pc:'+t.pc+'18">'
+    +'<div class="trend-platform" style="background:'+t.pc+'15;border:1px solid '+t.pc+'35;color:'+t.pc+'">'
+    +'<span style="display:flex;align-items:center;justify-content:center">'+ic(pIcon,17)+'</span>'
+    +'<span style="font-size:9.5px;font-weight:700;letter-spacing:0.3px">'+t.platform+'</span>'
+    +'</div>'
+    +'<div class="trend-info">'
+    +'<div class="trend-title">'+t.title+'</div>'
+    +'<div class="trend-tag">'+t.tag+'</div>'
+    +'</div>'
+    +'<div class="trend-stats">'
+    +'<div class="trend-growth">'+t.growth+'</div>'
+    +'<div class="trend-views">'+t.views+'</div>'
+    +'</div>'
+    +(t.hot?'<div class="hot-badge">🔥 HOT</div>':'')
+    +'<div class="open-badge">Aç →</div>'
+    +'</div>';
+}
+
+/* ════════════════════════════════════════════════════
+   TREND TAKİP
+════════════════════════════════════════════════════ */
+function rTrends(){
+  return '<div class="page-header"><div class="page-title">Trend Takip</div><div class="page-sub">Dental & sağlık turizmi — anlık takip · tıkla git</div></div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap">'
+    +['Tümü','Instagram','TikTok','YouTube'].map(function(p){
+      return '<button class="filter-pill" data-tf="'+p+'" onclick="filterT(\''+p+'\')" style="'+(p==='Tümü'?'background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600':'')+'">'+p+'</button>';
+    }).join('')+'</div>'
+    +'<div id="tlist" style="display:flex;flex-direction:column;gap:6px">'+TRENDS.map(tHTML).join('')+'</div>';
+}
+function filterT(p){
+  var filtered=p==='Tümü'?TRENDS:TRENDS.filter(function(t){return t.platform===p;});
+  var el=document.getElementById('tlist');if(el)el.innerHTML=filtered.map(tHTML).join('');
+  document.querySelectorAll('[data-tf]').forEach(function(b){
+    var isA=b.getAttribute('data-tf')===p;
+    b.style.background=isA?'var(--accent)':'';
+    b.style.borderColor=isA?'var(--accent)':'';
+    b.style.color=isA?'#fff':'';
+    b.style.fontWeight=isA?'600':'';
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   HASTA GALERİSİ
+════════════════════════════════════════════════════ */
+function rPatients(){
+  var sc={'Tamamlandı':['#10b981','rgba(16,185,129,0.1)'],'Devam Ediyor':['#f59e0b','rgba(245,158,11,0.1)']};
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">'
+    +'<div class="page-header" style="margin-bottom:0"><div class="page-title">Hasta Galerisi</div><div class="page-sub">Önce & sonra fotoğraf arşivi</div></div>'
+    +'<button class="btn btn-green" onclick="showPForm()">+ Hasta Ekle</button>'
+    +'</div>'
+    +'<div id="p-form" style="display:none;margin-bottom:20px">'
+    +'<div class="card" style="padding:20px">'
+    +'<div style="font-weight:700;color:var(--green2);font-size:13.5px;margin-bottom:14px">Yeni Hasta</div>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap">'
+    +'<input id="pn" class="input" placeholder="Ad Soyad" style="flex:1;min-width:140px"/>'
+    +'<input id="pt" class="input" placeholder="Tedavi türü" style="flex:1;min-width:140px"/>'
+    +'<input id="pd" class="input" placeholder="Tarih" style="flex:1;min-width:120px"/>'
+    +'<button class="btn btn-green" onclick="addP()">Kaydet</button>'
+    +'<button class="btn btn-ghost" onclick="hidePForm()">İptal</button>'
+    +'</div></div></div>'
+    +'<input type="file" id="fup" accept="image/*" style="display:none" onchange="handleUp(event)"/>'
+    +'<div class="patient-grid">'
+    +patients.map(function(p){
+      var st=sc[p.status]||['#6b7280','rgba(107,114,128,0.1)'];
+      return '<div class="patient-card">'
+        +'<div class="patient-head">'
+        +'<div><div class="patient-name">'+p.name+'</div><div class="patient-meta">'+p.treatment+' · '+p.date+'</div></div>'
+        +'<span class="status-pill" style="color:'+st[0]+';background:'+st[1]+';border:1px solid '+st[0]+'40">'+p.status+'</span>'
+        +'</div>'
+        +'<div class="photo-grid">'
+        +['before','after'].map(function(type,idx){
+          return '<div class="photo-slot" style="'+(idx===0?'border-right:1px solid var(--border)':'')+'" onclick="trigUp('+p.id+',\''+type+'\')">'
+            +(p[type]?'<img src="'+p[type]+'" alt="'+type+'"/>':'<span style="font-size:28px;opacity:0.12">⊕</span><span style="font-size:9px;color:var(--text3);font-weight:700;letter-spacing:0.5px">'+(type==='before'?'ÖNCE':'SONRA')+'</span>')
+            +'<span class="photo-label" style="color:'+(type==='before'?'#fb7185':'#34d399')+'">'+(type==='before'?'ÖNCE':'SONRA')+'</span>'
+            +'</div>';
+        }).join('')
+        +'</div>'
+        +(p.before&&p.after?'<div style="padding:12px 18px;text-align:center"><button class="btn btn-accent btn-sm" style="width:100%">↑ Sosyal Medyaya Paylaş</button></div>':'')
+        +'</div>';
+    }).join('')+'</div>';
+}
+function showPForm(){var e=document.getElementById('p-form');if(e)e.style.display='block';}
+function hidePForm(){var e=document.getElementById('p-form');if(e)e.style.display='none';}
+function addP(){
+  var n=document.getElementById('pn'),t=document.getElementById('pt'),d=document.getElementById('pd');
+  if(!n||!t||!n.value||!t.value)return;
+  patients.push({id:Date.now(),name:n.value,treatment:t.value,date:d?d.value||new Date().toLocaleDateString('tr-TR'):'',status:'Devam Ediyor',before:null,after:null});
+  saveState();render();
+}
+function trigUp(pid,type){uploadPid=pid;uploadType=type;document.getElementById('fup').click();}
+function handleUp(e){
+  var file=e.target.files[0];if(!file)return;
+  // Yenilemede kaybolmaması için fotoğrafı data URL (base64) olarak sakla
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var url=ev.target.result;
+    patients=patients.map(function(p){if(p.id===uploadPid){var np=Object.assign({},p);np[uploadType]=url;return np;}return p;});
+    saveState();render();
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+
+/* ════════════════════════════════════════════════════
+   INFLUENCER HUB
+════════════════════════════════════════════════════ */
+function infKey(inf){return String(inf.handle||inf.email||inf.name||'').toLowerCase();}
+function allInfluencers(){
+  return INFLUENCERS.map(function(m){return Object.assign({},m,{src:'default'});})
+    .concat(myInfluencers.map(function(m){return Object.assign({},m,{src:'manual'});}))
+    .concat(excelInfluencers.map(function(m){return Object.assign({},m,{src:'excel'});}))
+    .filter(function(inf){return !deletedInf[infKey(inf)];});   // silinenleri çıkar
+}
+function matchInf(inf){
+  var q=infSearch.toLowerCase();
+  var mq=!q||(inf.handle||'').toLowerCase().includes(q)||(inf.name||'').toLowerCase().includes(q)||(inf.email||'').toLowerCase().includes(q)||(inf.niche||'').toLowerCase().includes(q);
+  var mf=infFilter==='Tümü'||inf.platform===infFilter;
+  return mq&&mf;
+}
+function toggleSent(i){var inf=getFilteredAll()[i];if(!inf)return;var k=infKey(inf);if(sentInf[k])delete sentInf[k];else sentInf[k]=1;saveState();refreshInfList();}
+function delInf(i){var inf=getFilteredAll()[i];if(!inf)return;if(!confirm((inf.handle||inf.name||'Bu kayıt')+' listeden silinsin mi?'))return;deletedInf[infKey(inf)]=1;saveState();render();}
+function rInfluencers(){
+  var all=allInfluencers();
+  var filtered=all.filter(matchInf);
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">'
+    +'<div class="page-header" style="margin-bottom:0"><div class="page-title">Influencer Hub</div><div class="page-sub">İşbirliği listesi · Excel içe aktar · AI Mail & DM</div></div>'
+    +'<div style="font-size:11.5px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 12px">'+all.length+' kişi</div>'
+    +'</div>'
+
+    // Excel upload
+    +'<div class="upload-zone" style="margin-bottom:18px">'
+    +'<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'
+    +'<div style="font-size:26px;line-height:1">📊</div>'
+    +'<div style="flex:1">'
+    +'<div style="font-weight:700;color:var(--green2);font-size:13px">Excel / CSV İçe Aktar</div>'
+    +'<div style="color:var(--text3);font-size:11.5px;margin-top:2px">Desteklenen kolonlar: <span style="color:var(--text2);font-family:monospace">Handle, Ad, Platform, Email, Takipçi, Niş, Ülke, Not</span></div>'
+    +'</div>'
+    +'<label class="btn btn-green btn-sm" style="cursor:pointer">⬆ Dosya Seç<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="loadExcel(event)"/></label>'
+    +(excelInfluencers.length?'<button class="btn btn-ghost btn-sm" onclick="clearExcel()" style="color:var(--rose)">✕ Temizle ('+excelInfluencers.length+')</button>':'')
+    +'</div>'
+    +(excelInfluencers.length?'<div style="margin-top:10px;padding:7px 12px;background:rgba(16,185,129,0.08);border-radius:var(--r8);font-size:11.5px;color:var(--green2)">✓ '+excelInfluencers.length+' influencer başarıyla yüklendi</div>':'')
+    +'</div>'
+
+    // Search + filter + add
+    +'<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">'
+    +'<div class="search-wrap" style="flex:1;min-width:200px"><span class="search-icon">⌕</span><input class="input" placeholder="Ara — isim, handle, email, niş..." value="'+esc(infSearch)+'" oninput="infSearch=this.value;refreshInfList()"/></div>'
+    +['Tümü','Instagram','TikTok','YouTube'].map(function(p){return '<button class="filter-pill'+(infFilter===p?' active':'')+'" onclick="infFilter=\''+p+'\';refreshInfList()">'+p+'</button>';}).join('')
+    +'</div>'
+    +'<div class="card" style="padding:14px;margin-bottom:14px">'
+    +'<div style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Manuel Ekle</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<input id="ih" class="input" placeholder="@handle" style="width:120px"/>'
+    +'<input id="ih_name" class="input" placeholder="Ad Soyad" style="width:130px"/>'
+    +'<input id="ih_email" class="input" placeholder="E-posta" style="flex:1;min-width:160px"/>'
+    +'<select id="ih_plat" class="input" style="width:110px"><option>Instagram</option><option>TikTok</option><option>YouTube</option></select>'
+    +'<input id="ih_niche" class="input" placeholder="Niş" style="width:110px"/>'
+    +'<button class="btn btn-accent btn-sm" onclick="addInf()">+ Ekle</button>'
+    +'</div></div>'
+
+    +'<div id="inf-list" style="display:flex;flex-direction:column;gap:7px">'+renderInfList(filtered)+'</div>'
+    +(msgModal?rMsgModal():'');
+}
+
+function renderInfList(list){
+  if(!list.length)return '<div class="empty-state"><div style="font-size:40px;margin-bottom:12px;opacity:0.2">✦</div><div style="color:var(--text2);font-size:14px;font-weight:600">Sonuç bulunamadı</div><div style="color:var(--text3);font-size:12px;margin-top:4px">Arama kriterini değiştir</div></div>';
+  return list.map(function(inf,i){
+    var pc=PC[inf.platform]||'#888';
+    var srcC=inf.src==='excel'?'#f59e0b':inf.src==='manual'?'#10b981':'#7c6ef5';
+    var srcL=inf.src==='excel'?'XLS':inf.src==='manual'?'EKL':'ÖNR';
+    var hasEmail=inf.email&&inf.email.includes('@');
+    var igUser=(inf.handle||'').replace('@','');
+    var profileUrl=inf.platform==='Instagram'?'https://www.instagram.com/'+igUser:inf.platform==='TikTok'?'https://www.tiktok.com/@'+igUser:'';
+    var sent=!!sentInf[infKey(inf)];
+    return '<div class="inf-row'+(sent?' is-sent':'')+'">'
+      +'<span class="st-dot '+(sent?'sent':'pending')+'" title="'+(sent?'Mesaj gönderildi':'Henüz mesaj gönderilmedi')+'"></span>'
+      +'<div class="inf-av" style="background:'+srcC+'18;border:1.5px solid '+srcC+'35;color:'+srcC+'">'
+      +((inf.av)||((inf.handle||inf.name||'?').replace('@','').slice(0,2).toUpperCase()))
+      +'</div>'
+      +'<div style="flex:1;min-width:140px">'
+      +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">'
+      +'<span style="font-weight:700;font-size:13.5px;color:var(--text)">'+(inf.handle||inf.name||'—')+'</span>'
+      +'<span class="src-badge" style="background:'+srcC+'15;color:'+srcC+';border:1px solid '+srcC+'30">'+srcL+'</span>'
+      +(inf.name&&inf.handle?'<span style="font-size:11px;color:var(--text3)">'+esc(inf.name)+'</span>':'')
+      +'</div>'
+      +'<div style="font-size:11.5px;color:var(--text2);margin-top:2px">'+(inf.niche||'—')+' · '+(inf.country||'—')+'</div>'
+      +(hasEmail?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:monospace">'+esc(inf.email)+'</div>':'')
+      +(inf.note?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+esc(inf.note)+'</div>':'')
+      +'</div>'
+      +(inf.followers?'<div style="text-align:center;min-width:58px"><div style="font-weight:700;font-size:13.5px;color:var(--text)">'+esc(inf.followers)+'</div><div style="font-size:10px;color:var(--text3)">takipçi</div></div>':'')
+      +(inf.eng?'<div style="text-align:center;min-width:46px"><div style="font-weight:700;font-size:13px;color:var(--green2)">'+esc(inf.eng)+'</div><div style="font-size:10px;color:var(--text3)">etk.</div></div>':'')
+      +'<div style="background:'+pc+'18;color:'+pc+';border:1px solid '+pc+'35;border-radius:var(--r6);padding:3px 9px;font-size:10.5px;font-weight:700;white-space:nowrap">'+(inf.platform||'—')+'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'
+      +(hasEmail?'<button class="btn btn-green btn-sm" onclick="openMsg('+i+',\'mail\')">✉ Mail</button>':'')
+      +(profileUrl?'<button class="btn btn-sm" style="background:'+pc+'18;border:1px solid '+pc+'35;color:'+pc+'" onclick="openMsg('+i+',\'dm\')">💬 DM</button>':'')
+      +'<button class="btn btn-ghost btn-sm" onclick="openMsg('+i+',\'ai\')">✦ AI Yaz</button>'
+      +'<button class="btn btn-sm '+(sent?'btn-green':'btn-ghost')+'" onclick="toggleSent('+i+')" title="Gönderim durumunu değiştir">'+(sent?'✓ Gönderildi':'Gönderildi mi?')+'</button>'
+      +'<button class="icon-btn danger" title="Listeden sil" onclick="delInf('+i+')">'+ic('trash',15)+'</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function refreshInfList(){
+  var el=document.getElementById('inf-list');if(el)el.innerHTML=renderInfList(allInfluencers().filter(matchInf));
+}
+
+function getFilteredAll(){
+  return allInfluencers().filter(matchInf);
+}
+
+function loadExcel(e){
+  var file=e.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      var rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      function g(row,keys){for(var k in row){for(var j=0;j<keys.length;j++){if(k.toLowerCase().replace(/[\s_-]/g,'')===keys[j].toLowerCase().replace(/[\s_-]/g,''))return String(row[k]).trim();}}return '';}
+      excelInfluencers=rows.map(function(row,i){
+        var handle=g(row,['handle','hesap','instagram','username']);
+        var name=g(row,['ad','name','adsoyad','fullname','isim']);
+        var platform=g(row,['platform','kanal'])||'Instagram';
+        var followers=g(row,['takipci','takipçi','followers','subscribers','abone']);
+        var email=g(row,['email','eposta','mail']);
+        var niche=g(row,['nis','niche','kategori','category','alan']);
+        var country=g(row,['ulke','ülke','country','konum']);
+        var note=g(row,['not','note','aciklama','description']);
+        var eng=g(row,['etkilesim','engagement']);
+        if(!handle&&name)handle='@'+name.replace(/\s/g,'').toLowerCase();
+        return{id:'xl_'+i,handle:handle.charAt(0)==='@'?handle:'@'+handle,name,platform:platform.charAt(0).toUpperCase()+platform.slice(1).toLowerCase(),followers,email,niche,country,note,eng,av:(handle||name||'?').replace('@','').slice(0,2).toUpperCase()};
+      }).filter(function(r){return r.handle&&r.handle!=='@';});
+      render();
+    }catch(err){alert('Hata: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+function clearExcel(){excelInfluencers=[];render();}
+
+function addInf(){
+  var h=document.getElementById('ih'),nm=document.getElementById('ih_name'),em=document.getElementById('ih_email'),pl=document.getElementById('ih_plat'),ni=document.getElementById('ih_niche');
+  if(!h||!h.value.trim())return;
+  var handle=h.value.trim().charAt(0)==='@'?h.value.trim():'@'+h.value.trim();
+  myInfluencers.push({handle,name:nm?nm.value:'',email:em?em.value:'',platform:pl?pl.value:'Instagram',niche:ni?ni.value:'',av:handle.slice(1,3).toUpperCase()});
+  if(h)h.value='';if(nm)nm.value='';if(em)em.value='';if(ni)ni.value='';
+  saveState();render();
+}
+
+function openMsg(idx,type){
+  var filtered=getFilteredAll();
+  msgModal=filtered[idx];msgType=type;msgLoading=false;msgContent='';
+  if(type==='ai')genAIMsg();else render();
+}
+
+function rMsgModal(){
+  if(!msgModal)return '';
+  var inf=msgModal;
+  var hasEmail=inf.email&&inf.email.includes('@');
+  var igUser=(inf.handle||'').replace('@','');
+  var profileUrl=inf.platform==='Instagram'?'https://www.instagram.com/'+igUser:inf.platform==='TikTok'?'https://www.tiktok.com/@'+igUser:'';
+  var colors={mail:'var(--green)',dm:'var(--ig)',ai:'var(--amber)'};
+  var c=colors[msgType]||'var(--accent)';
+  return '<div class="modal-overlay" onclick="closeMsg()">'
+    +'<div class="modal" onclick="event.stopPropagation()">'
+    +'<div class="modal-head">'
+    +'<div>'
+    +'<div class="modal-title">'+(msgType==='mail'?'✉ E-posta Gönder':msgType==='dm'?'💬 DM Gönder':'✦ AI Mesaj Üret')+'</div>'
+    +'<div class="modal-sub">'+(inf.handle||inf.name||'—')+' · '+(inf.platform||'')+(hasEmail?' · '+inf.email:'')+'</div>'
+    +'</div>'
+    +'<button class="close-btn" onclick="closeMsg()">✕</button>'
+    +'</div>'
+    // Type switcher
+    +'<div style="display:flex;gap:7px;margin-bottom:18px">'
+    +(hasEmail?'<button class="btn btn-sm '+(msgType==='mail'?'btn-green':'btn-ghost')+'" onclick="switchMsgType(\'mail\')">✉ E-posta</button>':'')
+    +(profileUrl?'<button class="btn btn-sm '+(msgType==='dm'?'btn-rose':'btn-ghost')+'" onclick="switchMsgType(\'dm\')">💬 Instagram DM</button>':'')
+    +'<button class="btn btn-sm '+(msgType==='ai'?'btn-accent':'btn-ghost')+'" onclick="switchMsgType(\'ai\')">✦ AI Yaz</button>'
+    +'</div>'
+    // Purpose (AI only)
+    +(msgType==='ai'?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--r10);border:1px solid var(--border)">'
+      +['işbirliği','ücretsiz tedavi teklifi','brand ambassador','vlog işbirliği'].map(function(p){
+        return '<button class="btn btn-sm '+(msgPurpose===p?'btn-accent':'btn-ghost')+'" onclick="msgPurpose=\''+p+'\'" style="'+(msgPurpose===p?'':'opacity:0.6')+'">'+p+'</button>';
+      }).join('')
+      +'<button class="btn btn-accent btn-sm" onclick="genAIMsg()">↻ Üret</button>'
+      +'</div>':'')
+    // Content
+    +(msgLoading
+      ?'<div class="loading-card" style="padding:40px"><div class="pulse" style="font-size:32px">✦</div><div style="color:var(--accent2);font-weight:700;margin-top:14px">AI mesaj yazıyor...</div></div>'
+      :msgType==='mail'?rMailForm(inf)
+      :msgType==='dm'?rDMPanel(inf,profileUrl)
+      :rAIResult())
+    +'</div></div>';
+}
+
+function rMailForm(inf){
+  return '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="form-group"><label class="label">Konu</label><input id="mail-subject" class="input" value="İşbirliği Teklifi — YucelSinMedia"/></div>'
+    +'<div class="form-group"><label class="label">Mesaj</label>'
+    +'<textarea id="mail-body" class="input" rows="9">'
+    +'Hi '+(inf.name||inf.handle||'there')+',\n\nI came across your profile and I\'m truly impressed by your content and the community you\'ve built.\n\nWe are YucelSinMedia — a premium dental health tourism company based in Istanbul, Turkey. We specialise in smile transformations: veneers, Hollywood Smile, zirconia crowns, and implants.\n\nWe would love to gift you a complimentary smile makeover in exchange for an authentic review and content collaboration. This includes:\n\n✅ Full dental treatment (valued up to £3,500)\n✅ 4-night accommodation in Istanbul\n✅ VIP clinic experience & personal coordinator\n✅ City tour & hospitality\n\nWould you be open to a quick 15-min call to discuss?\n\nWarm regards,\nYucelSinMedia Team'
+    +'</textarea></div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn btn-green btn-lg" style="flex:1" onclick="sendMail(\''+esc(inf.email||'')+'\')">📧 Mail Uygulamasında Aç</button>'
+    +'<button class="btn btn-ghost" onclick="copyMailBody()">⎘ Kopyala</button>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--text3);text-align:center">Gmail / Outlook açılır — alıcı ve konu otomatik doldurulur</div>'
+    +'</div>';
+}
+
+function rDMPanel(inf,profileUrl){
+  return '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="algo-note"><span style="font-size:16px;flex-shrink:0">ℹ</span><span>Instagram DM direkt API üzerinden gönderilemez. Metni kopyala, profili aç, yapıştır ve gönder.</span></div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px">'
+    +[['1','Profili Aç',''+inf.handle+' profilini Instagram\'da aç',profileUrl?'<a href="'+profileUrl+'" target="_blank" class="btn btn-rose btn-sm">Profili Aç ↗</a>':''],
+      ['2','DM Metnini Kopyala','Aşağıdaki metni kopyala, Instagram\'da yapıştır','']]
+    .map(function(s){return '<div class="card" style="padding:12px 14px;display:flex;align-items:center;gap:12px"><div style="width:26px;height:26px;border-radius:50%;background:rgba(225,48,108,0.15);color:var(--ig);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0">'+s[0]+'</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">'+s[1]+'</div><div style="font-size:11.5px;color:var(--text2);margin-top:1px">'+s[2]+'</div></div>'+s[3]+'</div>';}).join('')
+    +'</div>'
+    +'<div class="form-group"><label class="label">DM Mesajı</label>'
+    +'<textarea id="dm-body" class="input" rows="7">'
+    +'Hey '+(inf.name||inf.handle||'there')+' 👋\n\nLove your content — you have an amazing community!\n\nWe\'re YucelSinMedia, a dental health tourism company in Istanbul 🇹🇷\n\nWe\'d love to gift you a full smile makeover (veneers / Hollywood Smile) 🦷✨ — completely complimentary — in exchange for some authentic content about your experience.\n\nIncludes: full treatment + hotel stay in Istanbul.\n\nInterested? Drop me a message! 😊'
+    +'</textarea></div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn btn-rose btn-lg" style="flex:1" onclick="copyDM()">⎘ DM Metnini Kopyala</button>'
+    +(profileUrl?'<a href="'+profileUrl+'" target="_blank" class="btn btn-ghost">Profili Aç ↗</a>':'')
+    +'</div>'
+    +'</div>';
+}
+
+function rAIResult(){
+  if(!msgContent)return '<div class="empty-state" style="padding:40px"><div style="font-size:36px;opacity:0.2;margin-bottom:12px">✦</div><div style="color:var(--text2)">Amaç seç ve "Üret" butonuna bas</div></div>';
+  return '<div style="display:flex;flex-direction:column;gap:12px">'
+    +'<div class="content-box">'+esc(msgContent)+'<button class="btn btn-ghost btn-sm copy-abs" onclick="copyAIMsg()">⎘ Kopyala</button></div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn btn-accent btn-lg" style="flex:1" onclick="copyAIMsg()">⎘ Kopyala</button>'
+    +'<button class="btn btn-ghost" onclick="genAIMsg()">↻ Yeniden Yaz</button>'
+    +'</div></div>';
+}
+
+function switchMsgType(t){msgType=t;msgContent='';msgLoading=false;render();}
+
+function genAIMsg(){
+  if(!msgModal)return;
+  msgLoading=true;msgContent='';render();
+  var inf=msgModal;
+  var p='Türkiye\'de dental sağlık turizmi yapan YucelSinMedia için influencer\'a '+msgPurpose+' mesajı yaz.\n'
+      +'Platform: '+(inf.platform||'Instagram')+'\nInfluencer: '+(inf.handle||inf.name||'—')+'\nNiş: '+(inf.niche||'genel')+'\nTakipçi: '+(inf.followers||'bilinmiyor')+'\n\n'
+      +((inf.platform==='Instagram'||inf.platform==='TikTok')?'DM formatı: kısa, samimi, emoji kullan, max 6 cümle. ':'Mail formatı: profesyonel, detaylı. ')
+      +'Teklif: Veneer/Hollywood Smile (bedava) + Istanbul konaklama + içerik işbirliği. Sadece mesaj metni, açıklama yok.';
+  callAI(p,800).then(function(text){
+    msgContent=text||'Boş yanıt geldi.';msgLoading=false;render();
+  }).catch(function(e){msgContent='⚠ '+(e.message||'API hatası');msgLoading=false;render();});
+}
+
+function markModalSent(){if(msgModal){sentInf[infKey(msgModal)]=1;saveState();}}
+function sendMail(email){
+  var s=document.getElementById('mail-subject'),b=document.getElementById('mail-body');
+  markModalSent();
+  window.location.href='mailto:'+email+'?subject='+encodeURIComponent(s?s.value:'')+'&body='+encodeURIComponent(b?b.value:'');
+}
+function copyMailBody(){var el=document.getElementById('mail-body');if(el)navigator.clipboard.writeText(el.value).then(function(){markModalSent();alert('Kopyalandı! (Gönderildi olarak işaretlendi)');});}
+function copyDM(){var el=document.getElementById('dm-body');if(el)navigator.clipboard.writeText(el.value).then(function(){markModalSent();alert('DM metni kopyalandı — Instagram\'ı aç ve yapıştır! (Gönderildi olarak işaretlendi)');});}
+function copyAIMsg(){navigator.clipboard.writeText(msgContent).then(function(){alert('Kopyalandı!');}).catch(function(){});}
+function closeMsg(){msgModal=null;render();}
+
+/* ════════════════════════════════════════════════════
+   İÇERİK ÖNERİLERİ
+════════════════════════════════════════════════════ */
+function rContent(){
+  return '<div class="page-header"><div class="page-title">İçerik Önerileri</div><div class="page-sub">AI destekli sosyal medya içerik fikri üreteci</div></div>'
+    +'<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">'
+    +'<input id="ctopic" class="input" placeholder="Konu gir... (veneer, hasta hikayeleri, fiyat karşılaştırma...)" style="flex:1;min-width:220px"/>'
+    +'<select id="cplatform" class="input" style="width:120px"><option>Tümü</option><option>Instagram</option><option>TikTok</option><option>YouTube</option></select>'
+    +'<button id="idea-btn" class="btn btn-accent" onclick="genIdeas()">✦ AI ile Üret</button>'
+    +'</div>'
+    +'<div id="ideas" style="display:flex;flex-direction:column;gap:10px">'+contentIdeas.map(ideaHTML).join('')+'</div>';
+}
+function ideaHTML(idea){
+  var platforms=(idea.platforms||[idea.platform]||[]);
+  var pc=PRC[idea.priority]||'#6b7280';
+  return '<div class="card" style="padding:16px 20px;display:flex;gap:14px;align-items:flex-start;transition:all 0.15s" onmouseover="this.style.borderColor=\'var(--border2)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+    +'<div style="background:rgba(124,110,245,0.12);border:1px solid rgba(124,110,245,0.2);border-radius:var(--r8);padding:5px 10px;font-size:11px;color:var(--accent2);font-weight:600;white-space:nowrap;min-width:80px;text-align:center">'+idea.type+'</div>'
+    +'<div style="flex:1">'
+    +'<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px">'+idea.title+'</div>'
+    +'<div style="color:var(--text2);font-size:12.5px;line-height:1.55">'+idea.desc+'</div>'
+    +'<div style="display:flex;gap:5px;margin-top:10px;flex-wrap:wrap">'
+    +platforms.map(function(p){var c=PC[p]||'#555';return '<span style="background:'+c+'15;color:'+c+';border:1px solid '+c+'30;border-radius:20px;padding:2px 9px;font-size:10.5px;font-weight:600">'+p+'</span>';}).join('')
+    +'</div></div>'
+    +'<div style="background:'+pc+'15;color:'+pc+';border:1px solid '+pc+'30;border-radius:20px;padding:3px 11px;font-size:10.5px;font-weight:700;white-space:nowrap">'+(idea.priority||'Orta')+'</div>'
+    +'</div>';
+}
+function genIdeas(){
+  var topic=document.getElementById('ctopic'),platform=document.getElementById('cplatform');
+  var btn=document.getElementById('idea-btn');if(btn){btn.disabled=true;btn.innerHTML='<span class="spin">↻</span> Üretiliyor...';}
+  var p='Türkiye\'de diş sağlığı turizmi yapan YucelSinMedia için 5 sosyal medya içerik fikri üret. Konu: "'+(topic?topic.value:'genel')+'". Platform: '+(platform?platform.value:'Tümü')+'.\n\nSADECE şu JSON nesnesini döndür: {"ideas":[{"type":"içerik türü","title":"başlık","desc":"açıklama","platforms":["platform"],"priority":"Yüksek/Orta/Düşük"}]}';
+  callAI(p,1200,true).then(function(text){
+    try{
+      var parsed=parseLoose(text);
+      var arr=Array.isArray(parsed)?parsed:(parsed.ideas||parsed.items||[]);
+      if(arr&&arr.length)contentIdeas=arr;else alert('Fikir üretilemedi, tekrar deneyin.');
+    }catch(e){alert('⚠ '+e.message);}
+    render();
+  }).catch(function(e){alert('⚠ '+(e.message||'API hatası'));render();});
+}
+
+/* ════════════════════════════════════════════════════
+   HASTA RÖPORTAJLARI
+════════════════════════════════════════════════════ */
+function rInterview(){
+  var hotTags=TRENDS.filter(function(t){return t.hot;}).map(function(t){return t.tag;});
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">'
+    +'<div class="page-header" style="margin-bottom:0"><div class="page-title">Hasta Röportaj İçerikleri</div><div class="page-sub">Gerçek hasta hikayelerinden Instagram içeriği üret</div></div>'
+    +'<button class="auto-btn'+(autoRefresh?' on':'')+'" onclick="toggleAuto()">'
+    +'<span class="live-dot"></span>'+(autoRefresh?'Canlı Güncelleme':'Oto-Yenileme Kapalı')
+    +(lastRefreshed?' · <span style="color:var(--text3)">'+lastRefreshed.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})+'</span>':'')
+    +'</button></div>'
+
+    +'<div class="trend-bar">'
+    +'<span style="font-size:11px;color:var(--ig);font-weight:700;white-space:nowrap">▣ TRENDLER:</span>'
+    +hotTags.map(function(t){return '<span class="tag tag-ig">'+t+'</span>';}).join('')
+    +'<span style="color:var(--text3);font-size:10.5px;margin-left:auto">Caption\'a otomatik eklenir</span>'
+    +'</div>'
+
+    +'<div class="interview-grid">'
+    // LEFT PANEL
+    +'<div style="display:flex;flex-direction:column;gap:14px">'
+
+    // Format seçimi
+    +'<div class="card" style="padding:14px">'
+    +'<div class="s-label">İçerik Formatı</div>'
+    +FORMATS.map(function(f){return '<button class="fmt-btn'+(selFormat.id===f.id?' active':'')+'" onclick="selFmt(\''+f.id+'\')">'
+      +'<span style="width:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center">'+ic(f.icon,17)+'</span>'
+      +'<div><div style="font-size:12.5px">'+f.label+'</div><div style="font-size:10px;opacity:0.6;margin-top:1px">'+f.desc+'</div></div>'
+      +'</button>';}).join('')
+    +'</div>'
+
+    // Parametre
+    +'<div class="card" style="padding:16px;display:flex;flex-direction:column;gap:12px">'
+    +'<div class="s-label">Hasta Bilgileri</div>'
+
+    +'<div class="form-group" style="margin-bottom:0"><label class="label">Dil</label><select id="il" class="input" onchange="iLang=this.value">'+LANGS.map(function(l){return '<option'+(l===iLang?' selected':'')+'>'+l+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-group" style="margin-bottom:0"><label class="label">Ton / Vibe</label><select id="iv" class="input" onchange="iVibe=this.value">'+VIBES.map(function(v){return '<option'+(v===iVibe?' selected':'')+'>'+v+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-group" style="margin-bottom:0"><label class="label">Tedavi</label><select id="itr" class="input" onchange="iTreat=this.value">'+TREATMENTS.map(function(t){return '<option'+(t===iTreat?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
+    +'<div class="form-group" style="margin-bottom:0"><label class="label">Hasta Adı <span style="opacity:0.5">(opsiyonel)</span></label><input id="iname" class="input" placeholder="ör. Sarah, Marco..." value="'+esc(iName)+'" oninput="iName=this.value"/></div>'
+    +'<div class="form-group" style="margin-bottom:0"><label class="label">Geldiği Ülke</label><input id="icountry" class="input" placeholder="ör. United Kingdom..." value="'+esc(iCountry)+'" oninput="iCountry=this.value"/></div>'
+
+    +'<div class="divider"></div>'
+
+    +'<div class="form-group" style="margin-bottom:0"><label class="label" style="color:var(--ig)">Hastanın Sözleri 💬</label><textarea id="iquote" class="input" rows="3" placeholder="&quot;I never smiled in photos before...&quot;" style="border-color:rgba(225,48,108,0.2)" oninput="iQuote=this.value">'+esc(iQuote)+'</textarea></div>'
+    +'<div class="form-group" style="margin-bottom:0"><label class="label">Ek Notlar</label><textarea id="inotes" class="input" rows="2" placeholder="ör. 3 gün kaldı, önceden korkusu vardı..." oninput="iNotes=this.value">'+esc(iNotes)+'</textarea></div>'
+
+    +'<div class="divider"></div>'
+
+    // Perspective
+    +'<div><div class="label" style="margin-bottom:8px">Anlatım Bakış Açısı</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<button class="persp-btn'+(iPerspective==='1st'?' active':'')+'" onclick="setPerspective(\'1st\')">'
+    +'<div style="font-size:20px;margin-bottom:4px">🙋</div>'
+    +'<div style="font-size:11.5px;font-weight:700">1. Tekil Şahıs</div>'
+    +'<div style="font-size:10px;opacity:0.55;margin-top:2px">Hasta kendi anlatıyor</div>'
+    +'<div style="font-size:9px;margin-top:4px;font-style:italic;opacity:0.4">"I flew to Turkey..."</div>'
+    +'</button>'
+    +'<button class="persp-btn'+(iPerspective==='3rd'?' active':'')+'" onclick="setPerspective(\'3rd\')">'
+    +'<div style="font-size:20px;margin-bottom:4px">📢</div>'
+    +'<div style="font-size:11.5px;font-weight:700">3. Tekil Şahıs</div>'
+    +'<div style="font-size:10px;opacity:0.55;margin-top:2px">Klinik anlatıyor</div>'
+    +'<div style="font-size:9px;margin-top:4px;font-style:italic;opacity:0.4">"Meet Sarah..."</div>'
+    +'</button></div></div>'
+
+    +'<button class="btn btn-rose btn-lg" onclick="genInterview()" id="gen-btn"'+(isLoading?' disabled':'')+' style="width:100%">'
+    +(isLoading?'<span class="spin">↻</span> Üretiliyor...':'⊕ İçerik Üret')+'</button>'
+    +'</div></div>'
+
+    // RIGHT PANEL
+    +'<div id="iout">'+rInterviewOut()+'</div>'
+    +'</div>';
+}
+
+function selFmt(id){for(var i=0;i<FORMATS.length;i++){if(FORMATS[i].id===id){selFormat=FORMATS[i];break;}}render();}
+function setPerspective(p){iPerspective=p;render();}
+function toggleAuto(){
+  autoRefresh=!autoRefresh;
+  if(autoRefresh&&interviewResult){autoTimer=setInterval(function(){genInterview(true);},6*60*1000);}
+  else{clearInterval(autoTimer);}
+  render();
+}
+
+function rInterviewOut(){
+  if(isLoading){
+    return '<div class="loading-card">'
+      +'<div class="pulse" style="font-size:40px;margin-bottom:18px">⊕</div>'
+      +'<div style="color:var(--ig);font-weight:700;font-size:16px;margin-bottom:8px">İçerik hazırlanıyor...</div>'
+      +'<div style="color:var(--text3);font-size:12.5px">Hasta hikayesi işleniyor · Trendler entegre ediliyor</div>'
+      +'</div>';
+  }
+  if(!interviewResult){
+    return '<div class="empty-state">'
+      +'<div style="margin-bottom:16px;color:var(--accent2);display:flex;justify-content:center">'+ic(selFormat.icon,46)+'</div>'
+      +'<div style="font-weight:700;font-size:16px;color:var(--text);margin-bottom:6px">'+selFormat.label+'</div>'
+      +'<div style="color:var(--text2);font-size:13px">'+selFormat.desc+'</div>'
+      +'<div style="color:var(--text3);font-size:11.5px;margin-top:10px">Soldan bilgileri gir ve "İçerik Üret" butonuna bas</div>'
+      +'</div>';
+  }
+  if(interviewResult.error){
+    return '<div class="card" style="padding:24px;text-align:center;border-color:rgba(244,63,94,0.2);background:rgba(244,63,94,0.04)">'
+      +'<div style="color:var(--rose);font-size:13px;font-weight:600;margin-bottom:6px">İçerik üretilemedi</div>'
+      +'<div style="color:var(--text2);font-size:12.5px;line-height:1.5;max-width:420px;margin:0 auto">'+esc(interviewResult.msg||'Bir hata oluştu. Lütfen tekrar deneyin.')+'</div>'
+      +'<div style="display:flex;gap:8px;justify-content:center;margin-top:14px">'
+      +'<button class="btn btn-ghost btn-sm" onclick="genInterview()">↻ Tekrar Dene</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="setApiKey()">⚙ API Anahtarı</button>'
+      +'</div></div>';
+  }
+  var variants=interviewResult.variants||[];
+  var v=variants[activeVariant]||{};
+  return '<div style="display:flex;flex-direction:column;gap:14px">'
+    +(interviewResult.contentNote?'<div class="algo-note"><span style="font-size:16px;flex-shrink:0">◉</span><span>'+esc(interviewResult.contentNote)+'</span></div>':'')
+    +(variants.length>1?'<div style="display:flex;gap:7px">'+variants.map(function(vv,i){return '<button class="var-tab'+(i===activeVariant?' active':'')+'" onclick="swVar('+i+')">'+esc(vv.label||'Versiyon '+(i+1))+'</button>';}).join('')+'</div>':'')
+    +'<div class="card" style="overflow:hidden">'
+    +'<div style="padding:13px 18px;border-bottom:1px solid var(--border);background:rgba(225,48,108,0.03);display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-weight:700;color:var(--ig);font-size:13.5px;display:flex;align-items:center;gap:7px">'+ic(selFormat.icon,16)+esc(v.label||selFormat.label)+'</div>'+(v.bestTime?'<div style="color:var(--text3);font-size:11px;margin-top:2px">⏰ '+esc(v.bestTime)+'</div>':'')+'</div>'
+    +'<div style="display:flex;gap:7px"><button class="btn btn-ghost btn-sm" onclick="genInterview()">↻ Yenile</button>'
+    +'<button class="btn btn-sm '+(copiedKey==='all'?'btn-green':'btn-rose')+'" onclick="cpAll()">'+(copiedKey==='all'?'✓ Kopyalandı':'⎘ Tümünü Kopyala')+'</button></div>'
+    +'</div>'
+    +'<div style="padding:20px;display:flex;flex-direction:column;gap:14px">'
+    +(v.hook?'<div><div class="s-label">❝ HOOK — İlk Cümle</div><div class="hook-box" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><span>'+esc(v.hook)+'</span><button class="btn btn-ghost btn-sm" style="flex-shrink:0" onclick="cpPart(\'hook\')">'+(copiedKey==='hook'?'✓':'⎘')+'</button></div></div>':'')
+    +'<div><div class="s-label">◈ İÇERİK</div><div class="content-box">'+esc(v.content||'')+'<button class="btn btn-ghost btn-sm copy-abs" onclick="cpPart(\'content\')">'+(copiedKey==='content'?'✓ Kopyalandı':'⎘ Kopyala')+'</button></div></div>'
+    +(v.hashtags&&v.hashtags.length?'<div><div class="s-label"># HASHTAGLER</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">'+v.hashtags.map(function(h){return '<span class="tag tag-ig">'+esc(h)+'</span>';}).join('')+'<button class="btn btn-ghost btn-sm" onclick="cpPart(\'tags\')">'+(copiedKey==='tags'?'✓':'⎘')+'</button></div></div>':'')
+    +(v.postingTip?'<div class="tip-box"><strong>◎ Paylaşım İpucu:</strong> '+esc(v.postingTip)+'</div>':'')
+    +'</div></div>'
+    +(variants.length>1?'<div class="versions-box"><div class="s-label" style="margin-bottom:10px">Tüm Versiyonlar</div>'+variants.map(function(vv,i){return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)"><div style="width:22px;height:22px;border-radius:50%;background:rgba(225,48,108,0.1);border:1px solid rgba(225,48,108,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--ig);">'+(i+1)+'</div><div style="flex:1;color:var(--text2);font-size:12.5px">'+esc(vv.label||'')+'</div><button class="btn btn-ghost btn-sm" onclick="cpVar('+i+')">⎘ Kopyala</button></div>';}).join('')+'</div>':'')
+    +'</div>';
+}
+
+function swVar(i){activeVariant=i;var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();}
+function cpAll(){
+  if(!interviewResult||!interviewResult.variants)return;
+  var v=interviewResult.variants[activeVariant];if(!v)return;
+  navigator.clipboard.writeText((v.hook||'')+'\n\n'+(v.content||'')+'\n\n'+((v.hashtags||[]).join(' '))).catch(function(){});
+  copiedKey='all';var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();
+  setTimeout(function(){copiedKey=null;var o2=document.getElementById('iout');if(o2)o2.innerHTML=rInterviewOut();},2200);
+}
+function cpPart(key){
+  if(!interviewResult||!interviewResult.variants)return;
+  var v=interviewResult.variants[activeVariant];if(!v)return;
+  var text=key==='hook'?v.hook||'':key==='content'?v.content||'':(v.hashtags||[]).join(' ');
+  navigator.clipboard.writeText(text).catch(function(){});
+  copiedKey=key;var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();
+  setTimeout(function(){copiedKey=null;var o2=document.getElementById('iout');if(o2)o2.innerHTML=rInterviewOut();},2200);
+}
+function cpVar(i){
+  if(!interviewResult||!interviewResult.variants)return;
+  var v=interviewResult.variants[i];if(!v)return;
+  navigator.clipboard.writeText((v.hook||'')+'\n\n'+(v.content||'')+'\n\n'+((v.hashtags||[]).join(' '))).catch(function(){});
+}
+function genInterview(silent){
+  if(!silent){isLoading=true;interviewResult=null;}
+  var hotTrends=TRENDS.filter(function(t){return t.hot;}).map(function(t){return t.title+' ('+t.tag+')';}).join(', ');
+  if(!silent){var o=document.getElementById('iout');if(o)o.innerHTML=rInterviewOut();}
+  var btn=document.getElementById('gen-btn');
+  if(btn&&!silent){btn.disabled=true;btn.innerHTML='<span class="spin">↻</span> Üretiliyor...';}
+  var p='Sen Türkiye\'deki premium dental sağlık turizmi kliniğinin Instagram içerik yazarısın.\n\n'
+      +'İçerik Formatı: '+selFormat.label+' — '+selFormat.desc+'\n'
+      +'Dil: '+iLang+'\nTon: '+iVibe+'\n'
+      +'Hasta Adı: '+(iName||'genel')+'\n'
+      +'Geldiği Ülke: '+(iCountry||'belirtilmedi')+'\n'
+      +'Tedavi: '+iTreat+'\n'
+      +'Hastanın sözleri: '+(iQuote||'yok — sen yaz')+'\n'
+      +'Ek notlar: '+(iNotes||'yok')+'\n'
+      +'Anlatım: '+(iPerspective==='1st'?'1. tekil şahıs — HASTA kendi ağzından yazar ("I / Ben"). "I flew to Turkey..." gibi.':'3. tekil şahıs — KLİNİK hastayı anlatır. "Meet Sarah from the UK..." gibi.')+'\n'
+      +'Trendler (entegre et): '+hotTrends+'\n\n'
+      +'Klişesiz, gerçekçi, viral potansiyelli içerik üret. Bakış açısına kesinlikle uy. İçeriği seçilen dilde ('+iLang+') yaz.\n\n'
+      +'SADECE JSON: {"variants":[{"label":"ad","hook":"ilk cümle","content":"tam metin","hashtags":["#tag"],"postingTip":"ipucu","bestTime":"saat"}],"contentNote":"algoritma notu"}';
+  callAI(p,2000,true).then(function(text){
+    try{interviewResult=parseLoose(text);}catch(e){interviewResult={error:true,msg:e.message};}
+    if(interviewResult&&!interviewResult.error&&!(interviewResult.variants&&interviewResult.variants.length)){
+      interviewResult={error:true,msg:'Model beklenen formatta içerik üretmedi. Tekrar deneyin.'};
+    }
+    activeVariant=0;lastRefreshed=new Date();isLoading=false;
+    if(!silent)render();
+    else{var o2=document.getElementById('iout');if(o2)o2.innerHTML=rInterviewOut();}
+  }).catch(function(e){interviewResult={error:true,msg:(e&&e.message)||'Bilinmeyen hata'};isLoading=false;if(!silent)render();});
+}
+
+/* ════════ BAŞLAT ═══════════════════════════════════ */
+loadState();
+render();
+</script>
+</body>
+</html>
