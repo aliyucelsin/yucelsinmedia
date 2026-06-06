@@ -378,7 +378,7 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 
 /* ── REKLAM GÖREVLERİ (Trello tarzı pano) ── */
 .task-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;align-items:flex-start}
-.task-list{flex:0 0 286px;width:286px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);display:flex;flex-direction:column;transition:border-color .15s,background .15s}
+.task-list{flex:1 1 240px;min-width:228px;max-width:340px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);display:flex;flex-direction:column;transition:border-color .15s,background .15s}
 .task-list.task-dragover{border-color:var(--accent);background:rgba(139,125,255,0.07)}
 .task-list-head{display:flex;align-items:center;gap:8px;padding:11px 13px}
 .task-list-title{font-weight:700;font-size:13px;color:var(--text);flex:1;outline:none;border-radius:5px;padding:2px 4px;min-width:0}
@@ -395,7 +395,7 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 .task-mini:hover{background:var(--surface2);color:var(--text)}
 .task-add{padding:10px}
 .task-addlist{flex:0 0 200px}
-@media (max-width:560px){ .task-list{flex:0 0 82vw;width:82vw} .task-cards{max-height:none} }
+@media (max-width:760px){ .task-list{flex:0 0 82vw;min-width:82vw;max-width:none} .task-cards{max-height:none} }
 .ad-row>div{padding:10px 9px;font-size:12px;border-left:1px solid rgba(255,255,255,0.04);min-width:0;display:flex;align-items:center}
 .ad-row>div:first-child{border-left:none}
 .ad-row.is-done{background:linear-gradient(90deg,rgba(16,185,129,0.28),rgba(16,185,129,0.10));box-shadow:inset 5px 0 0 var(--green2)}
