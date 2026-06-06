@@ -399,6 +399,16 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 .task-add{padding:8px 11px 12px}
 .task-add input{background:transparent;border:1px dashed var(--border2);transition:all .15s}
 .task-add input:focus{background:var(--bg3);border-style:solid}
+.task-att{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.task-att-img{position:relative;width:40px;height:40px;border-radius:6px;overflow:hidden;cursor:pointer;box-shadow:0 0 0 1px var(--border2);background:#000;flex-shrink:0}
+.task-att-img img,.task-att-img video{width:100%;height:100%;object-fit:cover;display:block}
+.task-att-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,0.3)}
+.task-att-file{position:relative;display:flex;align-items:center;gap:5px;max-width:140px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;font-size:10.5px;color:var(--text2);cursor:pointer}
+.task-att-file:hover{color:var(--text);border-color:var(--accent)}
+.task-att-file span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-att-x{position:absolute;top:-6px;right:-6px;width:17px;height:17px;border-radius:50%;background:var(--rose);color:#fff;font-size:11px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg3)}
+.task-att-img:hover .task-att-x,.task-att-file:hover .task-att-x{display:flex}
+.task-uploading{font-size:10.5px;color:var(--accent2);margin-top:8px;display:flex;align-items:center;gap:6px}
 @media (hover:none){ .task-card-foot{opacity:1} }
 @media (max-width:760px){ .task-list{flex:0 0 84vw;min-width:84vw;max-width:none} .task-cards{max-height:none} }
 .ad-row>div{padding:10px 9px;font-size:12px;border-left:1px solid rgba(255,255,255,0.04);min-width:0;display:flex;align-items:center}
@@ -711,6 +721,8 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 
 <!-- Reklam kreatifi yükleme (gizli) -->
 <input type="file" id="ad-fup" accept="image/jpeg,image/png,image/webp,video/mp4" style="display:none" onchange="adHandleCreative(event)"/>
+<!-- Görev kartı dosya eki (gizli, çoklu) -->
+<input type="file" id="task-fup" multiple style="display:none" onchange="taskHandleFiles(event)"/>
 
 <script>
 /* ════════════════════════════════════════════════════
@@ -744,6 +756,7 @@ var ICONS={
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
   board:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/>',
+  paperclip:'<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
   video:'<path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/>',
   layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
   quote:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
@@ -1826,7 +1839,7 @@ function adDelCreative(no,id){
   if(r&&r.creative){ if(sb&&r.creative.path){sb.storage.from('creatives').remove([r.creative.path]).catch(function(){});} delete r.creative; saveState(); adRerender(); }
 }
 function adViewCreative(no,id){var r=adRowById(no,id);if(r&&r.creative){adView=r.creative;adRerender();}}
-function adCloseView(){adView=null;adRerender();}
+function adCloseView(){adView=null;render();}
 function rAdView(){
   if(!adView)return '';
   var media=adView.type==='video'
@@ -1977,12 +1990,59 @@ function taskDelList(listId){if(!confirm('Liste ve içindeki tüm kartlar silins
 function taskRenameList(listId,title){var l=taskListById(listId);if(l){l.title=(title||'').replace(/\s+$/,'')||'Liste';saveState();}}
 function taskReset(){if(!confirm('Görev panosu varsayılana sıfırlansın mı?'))return;TASKS=JSON.parse(TASKS_DEFAULT_JSON);saveState();taskRerender();}
 
+/* Görev kartı dosya ekleri (Supabase Storage: taskfiles) */
+var taskUpTarget=null;
+function taskFindCard(listId,cardId){var l=taskListById(listId);return l?l.cards.filter(function(x){return x.id===cardId;})[0]:null;}
+function taskFileType(f){var t=f.type||'';if(t.indexOf('image')===0)return 'image';if(t.indexOf('video')===0)return 'video';return 'file';}
+function taskAttach(listId,cardId){
+  if(!sb){alert('Dosya eklemek için bulut bağlantısı gerekli (sayfayı yenileyin).');return;}
+  taskUpTarget={l:listId,c:cardId};var inp=document.getElementById('task-fup');if(inp){inp.value='';inp.click();}
+}
+function taskHandleFiles(e){
+  var files=e.target.files;if(!files||!files.length||!taskUpTarget||!sb)return;
+  var t=taskUpTarget;taskUpTarget=null;
+  var card=taskFindCard(t.l,t.c);if(!card)return;if(!card.files)card.files=[];
+  var arr=Array.prototype.slice.call(files),done=0;
+  sbStatus('☁ dosya yükleniyor… (0/'+arr.length+')','var(--text3)');
+  var ups=arr.map(function(f,i){
+    var ext=(f.name.split('.').pop()||'bin').toLowerCase();
+    var path='task_'+t.c+'_'+Date.now()+'_'+i+'.'+ext;
+    return sb.storage.from('taskfiles').upload(path,f,{contentType:f.type||'application/octet-stream',upsert:true}).then(function(res){
+      if(res.error)throw res.error;done++;sbStatus('☁ dosya yükleniyor… ('+done+'/'+arr.length+')','var(--text3)');
+      return {url:sb.storage.from('taskfiles').getPublicUrl(path).data.publicUrl,name:f.name,type:taskFileType(f),path:path};
+    });
+  });
+  Promise.all(ups).then(function(res){res.forEach(function(r){card.files.push(r);});saveState();taskRerender();sbStatus('☁ '+res.length+' dosya eklendi ✓','var(--green2)');})
+  .catch(function(err){alert('Yükleme hatası: '+(err&&err.message||err));sbStatus('☁ yükleme hatası','var(--rose)');saveState();taskRerender();});
+}
+function taskDelFile(listId,cardId,idx){
+  var card=taskFindCard(listId,cardId);if(!card||!card.files||!card.files[idx])return;
+  var f=card.files[idx];if(sb&&f.path)sb.storage.from('taskfiles').remove([f.path]).catch(function(){});
+  card.files.splice(idx,1);saveState();taskRerender();
+}
+function taskViewFile(listId,cardId,idx){
+  var card=taskFindCard(listId,cardId);if(!card||!card.files||!card.files[idx])return;
+  var f=card.files[idx];
+  if(f.type==='image'||f.type==='video'){adView={url:f.url,type:f.type,name:f.name};taskRerender();}
+  else window.open(f.url,'_blank');
+}
+
 function rTasks(){
   var board=TASKS.map(function(l){
     var cards=l.cards.map(function(c){
+      var files=c.files||[];
+      var att=files.length ? '<div class="task-att">'+files.map(function(f,i){
+        var x='<span class="task-att-x" title="Kaldır" onclick="event.stopPropagation();taskDelFile(\''+l.id+'\',\''+c.id+'\','+i+')">×</span>';
+        var ev='onclick="taskViewFile(\''+l.id+'\',\''+c.id+'\','+i+')"';
+        if(f.type==='image')return '<div class="task-att-img" title="'+esc(f.name)+'" '+ev+'><img src="'+f.url+'"/>'+x+'</div>';
+        if(f.type==='video')return '<div class="task-att-img" title="'+esc(f.name)+'" '+ev+'><video src="'+f.url+'#t=0.1" muted preload="metadata"></video><span class="task-att-play">'+ic('play',12)+'</span>'+x+'</div>';
+        return '<div class="task-att-file" title="'+esc(f.name)+'" '+ev+'>'+ic('doc',13)+'<span>'+esc(f.name)+'</span>'+x+'</div>';
+      }).join('')+'</div>' : '';
       return '<div class="task-card" style="border-left-color:'+l.color+'" draggable="true" ondragstart="taskDragStart(\''+l.id+'\',\''+c.id+'\')">'
         +'<div class="task-text" contenteditable="true" spellcheck="false" onblur="taskEditCard(\''+l.id+'\',\''+c.id+'\',this.innerText)">'+esc(c.text)+'</div>'
+        +att
         +'<div class="task-card-foot">'
+          +'<button class="task-mini" title="Dosya ekle" onclick="taskAttach(\''+l.id+'\',\''+c.id+'\')">'+ic('paperclip',13)+'</button>'
           +'<button class="task-mini" title="Önceki listeye" onclick="taskMove(\''+l.id+'\',\''+c.id+'\',-1)">‹</button>'
           +'<button class="task-mini" title="Sonraki listeye" onclick="taskMove(\''+l.id+'\',\''+c.id+'\',1)">›</button>'
           +'<button class="task-mini" title="Kartı sil" onclick="taskDelCard(\''+l.id+'\',\''+c.id+'\')">'+ic('trash',12)+'</button>'
@@ -2004,7 +2064,8 @@ function rTasks(){
     +'<div class="page-header" style="margin-bottom:0"><div class="page-title">Reklam Görevleri</div><div class="page-sub">Trello tarzı görev panosu · kartı sürükle ya da ‹ › ile taşı · çift dokun düzenle</div></div>'
     +'<div style="display:flex;gap:8px"><button class="btn btn-accent btn-sm" onclick="taskAddList()">+ Liste</button><button class="btn btn-ghost btn-sm" style="color:var(--rose)" onclick="taskReset()">↺ Sıfırla</button></div>'
     +'</div>'
-    +'<div class="task-board">'+board+'</div>';
+    +'<div class="task-board">'+board+'</div>'
+    +(adView?rAdView():'');
 }
 
 /* ════════ TEMA (gece / gündüz) ═══════════════════════ */
