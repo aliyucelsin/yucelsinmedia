@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ── DESIGN TOKENS ─────────────────────────────────── */
 :root{
@@ -662,9 +663,10 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
   <div class="sidebar-foot">
     <div class="user-row">
       <div class="user-av">YS</div>
-      <div style="flex:1">
+      <div style="flex:1;min-width:0">
         <div class="user-name">Yönetici</div>
         <div class="user-role">Sosyal Medya Uzmanı</div>
+        <div id="sb-status" style="font-size:9.5px;margin-top:2px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
       </div>
       <button class="close-btn" id="theme-btn" title="Gece / Gündüz" onclick="toggleTheme()"></button>
       <button class="close-btn" title="API Anahtarı Ayarı" onclick="setApiKey()" style="margin-left:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -1027,7 +1029,7 @@ function callAI(userPrompt,maxTokens,jsonMode){
 }
 
 /* ════════ KALICI DEPOLAMA (localStorage) ═══════════ */
-function saveState(){
+function saveLocalOnly(){
   try{
     localStorage.setItem('ysm_patients',JSON.stringify(patients));
     localStorage.setItem('ysm_myInfluencers',JSON.stringify(myInfluencers));
@@ -1037,6 +1039,7 @@ function saveState(){
     localStorage.setItem('ysm_ads',JSON.stringify(ADS));
   }catch(e){/* kota dolabilir (fotoğraflar büyükse) — sessiz geç */}
 }
+function saveState(){ saveLocalOnly(); if(typeof sbSyncDebounced==='function')sbSyncDebounced(); }
 function loadState(){
   try{
     var p=localStorage.getItem('ysm_patients');if(p)patients=JSON.parse(p);
@@ -1872,6 +1875,43 @@ function doLogin(){
 }
 function logout(){ localStorage.removeItem('ysm_auth'); location.reload(); }
 
+/* ════════ BULUT KAYDI (Supabase) ═══════════════════ */
+var SB_URL='https://nristzrzzdrpjnxunrcv.supabase.co';
+var SB_KEY='sb_publishable_7GKuN3ctlbym5sqoEhecdw_8nkRg_mX';
+var sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SB_URL,SB_KEY):null;
+var sbTimer=null;
+// Buluta senkronlanan veri setleri (tema/giriş cihaza özel kalır)
+var SB_APPLY={
+  ads:function(v){if(Array.isArray(v))ADS=v;},
+  patients:function(v){if(Array.isArray(v))patients=v;},
+  myInfluencers:function(v){if(Array.isArray(v))myInfluencers=v;},
+  sentInf:function(v){if(v&&typeof v==='object')sentInf=v;},
+  deletedInf:function(v){if(v&&typeof v==='object')deletedInf=v;},
+  adState:function(v){if(v&&typeof v==='object')adState=v;}
+};
+function sbStatus(txt,color){var e=document.getElementById('sb-status');if(e){e.textContent=txt;e.style.color=color||'var(--text3)';}}
+function sbLoad(){
+  if(!sb)return Promise.resolve(-1);
+  return sb.from('kv').select('id,data').then(function(res){
+    if(res.error)throw res.error;
+    var rows=res.data||[];
+    rows.forEach(function(row){ if(SB_APPLY[row.id]&&row.data!=null)SB_APPLY[row.id](row.data); });
+    return rows.length;
+  }).catch(function(e){ console.warn('Supabase load:',(e&&e.message)||e); return -1; });
+}
+function sbSyncNow(){
+  if(!sb)return;
+  var payload=[
+    {id:'ads',data:ADS},{id:'patients',data:patients},{id:'myInfluencers',data:myInfluencers},
+    {id:'sentInf',data:sentInf},{id:'deletedInf',data:deletedInf},{id:'adState',data:adState}
+  ];
+  sb.from('kv').upsert(payload).then(function(res){
+    if(res.error)sbStatus('☁ kayıt hatası',' var(--rose)');
+    else sbStatus('☁ buluta kaydedildi ✓','var(--green2)');
+  });
+}
+function sbSyncDebounced(){ if(!sb)return; clearTimeout(sbTimer); sbStatus('☁ kaydediliyor…','var(--text3)'); sbTimer=setTimeout(sbSyncNow,800); }
+
 /* ════════ BAŞLAT ═══════════════════════════════════ */
 function boot(){
   applyTheme();
@@ -1882,8 +1922,21 @@ function boot(){
     return;
   }
   if(gate)gate.innerHTML='';
-  loadState();
-  render();
+  loadState();   // yerel önbellek (anlık)
+  render();      // önbelleği hemen göster
+  if(sb){
+    sbStatus('☁ bağlanıyor…','var(--text3)');
+    sbLoad().then(function(n){
+      if(n<0){ sbStatus('☁ çevrimdışı (yerel)','var(--amber)'); return; }
+      adNormalize();
+      saveLocalOnly();   // bulut verisini yerele de yaz
+      render();
+      if(n===0){ sbSyncNow(); }                  // bulut boşsa mevcut veriyle doldur
+      else sbStatus('☁ bulut bağlı ✓','var(--green2)');
+    });
+  }else{
+    sbStatus('☁ kütüphane yüklenmedi','var(--amber)');
+  }
 }
 boot();
 </script>
