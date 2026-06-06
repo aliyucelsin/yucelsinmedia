@@ -361,8 +361,8 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 
 /* ── REKLAM YÖNETİMİ TABLOSU ── */
 .ad-wrap{overflow-x:auto;border:1px solid var(--border2);border-radius:var(--r12);background:var(--bg2)}
-.ad-table{min-width:920px}
-.ad-head{display:grid;grid-template-columns:300px 168px 150px 1fr 120px 96px 96px;background:#0a1026;border-bottom:1px solid var(--border2)}
+.ad-table{min-width:1080px}
+.ad-head{display:grid;grid-template-columns:300px 150px 140px 1fr 100px 150px 84px 84px;background:#0a1026;border-bottom:1px solid var(--border2)}
 .ad-head>div{padding:13px 12px;font-size:10.5px;font-weight:700;letter-spacing:0.5px;color:#cbd5e1;text-transform:uppercase;display:flex;align-items:center;gap:7px;border-left:1px solid rgba(255,255,255,0.06)}
 .ad-head>div:first-child{border-left:none}
 .ad-cat{display:flex;border-top:1px solid var(--border)}
@@ -372,7 +372,7 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 .ad-cat-ic{flex-shrink:0;display:flex;align-items:center}
 .ad-cat-name{font-weight:800;font-size:12px;line-height:1.25;letter-spacing:0.2px}
 .ad-body{flex:1;min-width:0;display:flex;flex-direction:column}
-.ad-row{display:grid;grid-template-columns:168px 150px 1fr 120px 96px 96px;align-items:stretch;border-bottom:1px solid var(--border);transition:background .18s,box-shadow .18s}
+.ad-row{display:grid;grid-template-columns:150px 140px 1fr 100px 150px 84px 84px;align-items:stretch;border-bottom:1px solid var(--border);transition:background .18s,box-shadow .18s}
 .ad-row>div{padding:11px 12px;font-size:12.5px;border-left:1px solid rgba(255,255,255,0.04);min-width:0;display:flex;align-items:center}
 .ad-row>div:first-child{border-left:none}
 .ad-row.is-done{background:linear-gradient(90deg,rgba(16,185,129,0.28),rgba(16,185,129,0.10));box-shadow:inset 5px 0 0 var(--green2)}
@@ -1734,6 +1734,25 @@ function computeGenel(){var t=0;ADS.forEach(function(c){var ct=parseTL(c.total);
 function adRerender(){var m=document.getElementById('main');if(m)m.innerHTML=rAds();}
 function adUpdateGenel(){var el=document.getElementById('ad-genel-val');if(el)el.textContent=computeGenel();}
 
+// Reklam gidişatı: 0-100 → kötü(kırmızı)/orta(sarı)/iyi(yeşil)
+function perfColor(p){return p>=70?'#10b981':p>=40?'#f59e0b':'#ef4444';}
+function perfLabel(p){return p>=70?'İyi':p>=40?'Orta':'Kötü';}
+function perfVal(r){return (r&&r.perf!=null)?Math.max(0,Math.min(100,+r.perf)):50;}
+function perfBar(p){
+  var c=perfColor(p);
+  return '<div style="width:100%">'
+    +'<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px"><span style="color:'+c+';font-weight:700">'+perfLabel(p)+'</span><span style="color:var(--text2)">%'+p+'</span></div>'
+    +'<div style="height:7px;border-radius:4px;background:var(--surface2);overflow:hidden"><div style="height:100%;width:'+p+'%;background:'+c+';border-radius:4px;transition:width .3s,background .3s"></div></div>'
+    +'</div>';
+}
+function adEditPerf(no,id,val){
+  var c=adCat(no);if(!c)return;
+  var r=c.rows.filter(function(x){return x.id===id;})[0];
+  if(!r)return;
+  r.perf=+val;saveState();
+  var lbl=document.getElementById('perf-lbl-'+id);if(lbl){lbl.textContent=perfLabel(+val)+' · %'+val;lbl.style.color=perfColor(+val);}
+  var rng=document.getElementById('perf-rng-'+id);if(rng)rng.style.accentColor=perfColor(+val);
+}
 function adToggle(id,which){var k=id+'-'+which;if(adState[k])delete adState[k];else adState[k]=1;saveState();adRerender();}
 function adToggleEdit(){adEdit=!adEdit;adRerender();}
 function adEditField(no,id,field,val){var c=adCat(no);if(!c)return;var r=c.rows.filter(function(x){return x.id===id;})[0];if(r){r[field]=val;saveState();if(field==='budget')adUpdateGenel();}}
@@ -1756,6 +1775,7 @@ function rAds(){
     +'<div>'+ic('user',13)+'Kişi</div>'
     +'<div>'+ic('megaphone',13)+'Açıklama</div>'
     +'<div>'+ic('coins',13)+'Bütçe (TL)</div>'
+    +'<div>'+ic('trend',13)+'Reklam Gidişatı</div>'
     +'<div style="justify-content:center">'+ic('play',13)+'Açılan</div>'
     +'<div style="justify-content:center">'+ic('check',13)+'Bitti</div>'
     +'</div>';
@@ -1765,6 +1785,7 @@ function rAds(){
     var rows='';
     c.rows.forEach(function(r){
       var a=!!adState[r.id+'-a'], b=!!adState[r.id+'-b'];
+      var pf=perfVal(r);
       var chk='<div class="ad-chk"><div class="ad-box'+(a?' on':'')+'" title="Reklam Açılan" onclick="adToggle(\''+r.id+'\',\'a\')">'+(a?ic('check',14):'')+'</div></div>'
              +'<div class="ad-chk"><div class="ad-box'+(b?' on':'')+'" title="Videosu Biten" onclick="adToggle(\''+r.id+'\',\'b\')">'+(b?ic('check',14):'')+'</div></div>';
       if(adEdit){
@@ -1773,7 +1794,8 @@ function rAds(){
           +'<div style="gap:6px"><input class="ad-in" style="width:48px" value="'+esc(r.cc||'')+'" placeholder="tr" oninput="'+ar+'\'cc\',this.value)"/><input class="ad-in" value="'+esc(r.loc||'')+'" placeholder="Lokasyon" oninput="'+ar+'\'loc\',this.value)"/></div>'
           +'<div><input class="ad-in" value="'+esc(r.person||'')+'" placeholder="Kişi" oninput="'+ar+'\'person\',this.value)"/></div>'
           +'<div><input class="ad-in" value="'+esc(r.desc||'')+'" placeholder="Açıklama" oninput="'+ar+'\'desc\',this.value)"/></div>'
-          +'<div style="gap:6px"><input class="ad-in" style="width:80px" value="'+esc(r.budget||'')+'" placeholder="-" oninput="'+ar+'\'budget\',this.value)"/><button class="icon-btn danger" title="Satırı sil" onclick="adDelRow('+c.no+',\''+r.id+'\')">'+ic('trash',14)+'</button></div>'
+          +'<div style="gap:6px"><input class="ad-in" style="width:74px" value="'+esc(r.budget||'')+'" placeholder="-" oninput="'+ar+'\'budget\',this.value)"/><button class="icon-btn danger" title="Satırı sil" onclick="adDelRow('+c.no+',\''+r.id+'\')">'+ic('trash',14)+'</button></div>'
+          +'<div><div style="width:100%"><input id="perf-rng-'+r.id+'" type="range" min="0" max="100" value="'+pf+'" oninput="adEditPerf('+c.no+',\''+r.id+'\',this.value)" style="width:100%;accent-color:'+perfColor(pf)+'"/><div id="perf-lbl-'+r.id+'" style="font-size:10px;text-align:center;font-weight:700;color:'+perfColor(pf)+'">'+perfLabel(pf)+' · %'+pf+'</div></div></div>'
           +chk
           +'</div>';
       }else{
@@ -1785,6 +1807,7 @@ function rAds(){
           +'<div class="ad-person">'+esc(r.person||'')+'</div>'
           +'<div style="color:var(--text2);line-height:1.4;gap:9px">'+adDescIcon(r.desc)+'<span>'+esc(r.desc||'')+'</span></div>'
           +'<div style="font-weight:700;color:'+(r.budget&&r.budget!=='-'?'var(--green2)':'var(--text3)')+'">'+esc(r.budget||'-')+'</div>'
+          +'<div>'+perfBar(pf)+'</div>'
           +chk
           +'</div>';
       }
