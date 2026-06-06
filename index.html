@@ -377,25 +377,30 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 .ad-up:hover{background:var(--surface);color:var(--accent2);border-color:var(--accent)}
 
 /* ── REKLAM GÖREVLERİ (Trello tarzı pano) ── */
-.task-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;align-items:flex-start}
-.task-list{flex:1 1 240px;min-width:228px;max-width:340px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);display:flex;flex-direction:column;transition:border-color .15s,background .15s}
-.task-list.task-dragover{border-color:var(--accent);background:rgba(139,125,255,0.07)}
-.task-list-head{display:flex;align-items:center;gap:8px;padding:11px 13px}
-.task-list-title{font-weight:700;font-size:13px;color:var(--text);flex:1;outline:none;border-radius:5px;padding:2px 4px;min-width:0}
+.task-board{display:flex;gap:16px;overflow-x:auto;padding:4px 2px 18px;align-items:flex-start}
+.task-list{flex:1 1 240px;min-width:230px;max-width:344px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;transition:border-color .18s,box-shadow .18s,transform .18s;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.18)}
+.task-list.task-dragover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,125,255,0.28),0 8px 24px rgba(0,0,0,0.4);transform:translateY(-3px)}
+.task-list-head{display:flex;align-items:center;gap:9px;padding:13px 14px;border-bottom:1px solid var(--border)}
+.task-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 0 9px currentColor}
+.task-list-title{font-weight:800;font-size:13px;color:var(--text);flex:1;outline:none;border-radius:5px;padding:2px 4px;min-width:0;letter-spacing:-0.2px;font-family:'Sora',sans-serif}
 .task-list-title:focus{background:var(--surface2)}
-.task-count{font-size:11px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:1px 9px;flex-shrink:0}
-.task-cards{padding:0 10px 4px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:62vh;min-height:24px}
-.task-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r8);padding:10px 11px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,0.25)}
-.task-card:hover{border-color:var(--accent)}
-.task-card:active{cursor:grabbing}
-.task-text{font-size:12.5px;color:var(--text);line-height:1.45;outline:none;min-height:18px;word-break:break-word}
-.task-text:focus{background:var(--surface2);border-radius:4px}
-.task-card-foot{display:flex;gap:5px;margin-top:9px;justify-content:flex-end}
-.task-mini{width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;flex-shrink:0}
-.task-mini:hover{background:var(--surface2);color:var(--text)}
-.task-add{padding:10px}
-.task-addlist{flex:0 0 200px}
-@media (max-width:760px){ .task-list{flex:0 0 82vw;min-width:82vw;max-width:none} .task-cards{max-height:none} }
+.task-count{font-size:11px;font-weight:800;border-radius:20px;padding:2px 10px;flex-shrink:0}
+.task-cards{padding:11px 11px 5px;display:flex;flex-direction:column;gap:9px;overflow-y:auto;max-height:60vh;min-height:36px}
+.task-card{position:relative;background:var(--bg3);border:1px solid var(--border2);border-left-width:4px;border-radius:9px;padding:11px 12px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,0.28);transition:transform .13s,box-shadow .13s}
+.task-card:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(0,0,0,0.4)}
+.task-card:active{cursor:grabbing;opacity:0.55}
+.task-text{font-size:12.5px;color:var(--text);line-height:1.5;outline:none;min-height:18px;word-break:break-word;font-weight:500}
+.task-text:focus{background:var(--surface2);border-radius:4px;box-shadow:0 0 0 2px rgba(139,125,255,0.3)}
+.task-card-foot{display:flex;gap:5px;margin-top:10px;justify-content:flex-end;opacity:0.5;transition:opacity .15s}
+.task-card:hover .task-card-foot{opacity:1}
+.task-mini{width:26px;height:26px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;flex-shrink:0;transition:all .12s}
+.task-mini:hover{background:var(--surface2);color:var(--text);transform:translateY(-1px)}
+.task-empty{border:1.5px dashed var(--border2);border-radius:9px;padding:18px 10px;text-align:center;font-size:11px;color:var(--text3);font-weight:500}
+.task-add{padding:8px 11px 12px}
+.task-add input{background:transparent;border:1px dashed var(--border2);transition:all .15s}
+.task-add input:focus{background:var(--bg3);border-style:solid}
+@media (hover:none){ .task-card-foot{opacity:1} }
+@media (max-width:760px){ .task-list{flex:0 0 84vw;min-width:84vw;max-width:none} .task-cards{max-height:none} }
 .ad-row>div{padding:10px 9px;font-size:12px;border-left:1px solid rgba(255,255,255,0.04);min-width:0;display:flex;align-items:center}
 .ad-row>div:first-child{border-left:none}
 .ad-row.is-done{background:linear-gradient(90deg,rgba(16,185,129,0.28),rgba(16,185,129,0.10));box-shadow:inset 5px 0 0 var(--green2)}
@@ -1975,7 +1980,7 @@ function taskReset(){if(!confirm('Görev panosu varsayılana sıfırlansın mı?
 function rTasks(){
   var board=TASKS.map(function(l){
     var cards=l.cards.map(function(c){
-      return '<div class="task-card" draggable="true" ondragstart="taskDragStart(\''+l.id+'\',\''+c.id+'\')">'
+      return '<div class="task-card" style="border-left-color:'+l.color+'" draggable="true" ondragstart="taskDragStart(\''+l.id+'\',\''+c.id+'\')">'
         +'<div class="task-text" contenteditable="true" spellcheck="false" onblur="taskEditCard(\''+l.id+'\',\''+c.id+'\',this.innerText)">'+esc(c.text)+'</div>'
         +'<div class="task-card-foot">'
           +'<button class="task-mini" title="Önceki listeye" onclick="taskMove(\''+l.id+'\',\''+c.id+'\',-1)">‹</button>'
@@ -1983,10 +1988,12 @@ function rTasks(){
           +'<button class="task-mini" title="Kartı sil" onclick="taskDelCard(\''+l.id+'\',\''+c.id+'\')">'+ic('trash',12)+'</button>'
         +'</div></div>';
     }).join('');
+    if(!l.cards.length)cards='<div class="task-empty">Kart yok · buraya sürükle ya da aşağıdan ekle</div>';
     return '<div class="task-list" ondragover="event.preventDefault();this.classList.add(\'task-dragover\')" ondragleave="this.classList.remove(\'task-dragover\')" ondrop="this.classList.remove(\'task-dragover\');taskDrop(\''+l.id+'\')">'
-      +'<div class="task-list-head" style="border-bottom:3px solid '+l.color+'">'
+      +'<div class="task-list-head" style="background:linear-gradient(135deg,'+l.color+'26,transparent 80%)">'
+        +'<span class="task-dot" style="color:'+l.color+';background:'+l.color+'"></span>'
         +'<div class="task-list-title" contenteditable="true" spellcheck="false" onblur="taskRenameList(\''+l.id+'\',this.innerText)">'+esc(l.title)+'</div>'
-        +'<span class="task-count">'+l.cards.length+'</span>'
+        +'<span class="task-count" style="color:'+l.color+';background:'+l.color+'22">'+l.cards.length+'</span>'
         +'<button class="task-mini" title="Listeyi sil" onclick="taskDelList(\''+l.id+'\')">'+ic('trash',12)+'</button>'
       +'</div>'
       +'<div class="task-cards">'+cards+'</div>'
