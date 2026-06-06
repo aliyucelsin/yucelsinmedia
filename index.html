@@ -409,6 +409,14 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 .task-att-x{position:absolute;top:-6px;right:-6px;width:17px;height:17px;border-radius:50%;background:var(--rose);color:#fff;font-size:11px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg3)}
 .task-att-img:hover .task-att-x,.task-att-file:hover .task-att-x{display:flex}
 .task-uploading{font-size:10.5px;color:var(--accent2);margin-top:8px;display:flex;align-items:center;gap:6px}
+.t-av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;font-family:'Sora',sans-serif;box-shadow:0 0 0 2px var(--bg3)}
+.task-assignees{display:flex;align-items:center;margin-top:10px}
+.task-assignees .t-av{margin-left:-7px}
+.task-assignees .t-av:first-child{margin-left:0}
+.assign-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;border:1px solid var(--border);cursor:pointer;background:var(--bg3);transition:border-color .12s,background .12s}
+.assign-row:hover{border-color:var(--border2)}
+.assign-row.on{border-color:var(--green2);background:rgba(16,185,129,0.08)}
+.assign-row .t-av{box-shadow:none}
 @media (hover:none){ .task-card-foot{opacity:1} }
 @media (max-width:760px){ .task-list{flex:0 0 84vw;min-width:84vw;max-width:none} .task-cards{max-height:none} }
 .ad-row>div{padding:10px 9px;font-size:12px;border-left:1px solid rgba(255,255,255,0.04);min-width:0;display:flex;align-items:center}
@@ -1084,6 +1092,7 @@ function saveLocalOnly(){
     localStorage.setItem('ysm_adState',JSON.stringify(adState));
     localStorage.setItem('ysm_ads',JSON.stringify(ADS));
     localStorage.setItem('ysm_tasks',JSON.stringify(TASKS));
+    localStorage.setItem('ysm_team',JSON.stringify(TEAM));
   }catch(e){/* kota dolabilir (fotoğraflar büyükse) — sessiz geç */}
 }
 function saveState(){ saveLocalOnly(); if(typeof sbSyncDebounced==='function')sbSyncDebounced(); }
@@ -1096,6 +1105,7 @@ function loadState(){
     var ad=localStorage.getItem('ysm_adState');if(ad)adState=JSON.parse(ad);
     var ax=localStorage.getItem('ysm_ads');if(ax)ADS=JSON.parse(ax);
     var tx=localStorage.getItem('ysm_tasks');if(tx)TASKS=JSON.parse(tx);
+    var tm=localStorage.getItem('ysm_team');if(tm)TEAM=JSON.parse(tm);
   }catch(e){}
 }
 
@@ -1783,6 +1793,14 @@ var TASKS=[
 ];
 var TASKS_DEFAULT_JSON=JSON.stringify(TASKS);
 var taskDrag=null;
+var taskAssignTarget=null;
+/* Atanabilir ekip kişileri */
+var TEAM=[
+  {id:'m1',name:'Kağan Bingöl',color:'#7c6ef5'},
+  {id:'m2',name:'Serhad Teke', color:'#10b981'},
+  {id:'m3',name:'Rozerin Eski',color:'#f59e0b'}
+];
+var TEAM_COLORS=['#7c6ef5','#f0467f','#10b981','#f59e0b','#38bdf8','#fb7185','#a78bfa','#34d399','#f43f5e','#22d3ee'];
 
 function adNormalize(){ADS.forEach(function(c){c.rows.forEach(function(r,i){if(!r.id)r.id='c'+c.no+'_'+i;});});}
 function adCat(no){for(var i=0;i<ADS.length;i++)if(ADS[i].no==no)return ADS[i];return null;}
@@ -2027,6 +2045,51 @@ function taskViewFile(listId,cardId,idx){
   else window.open(f.url,'_blank');
 }
 
+/* Kişi atama */
+function teamById(id){return TEAM.filter(function(m){return m.id===id;})[0];}
+function tInitials(n){var p=String(n||'?').trim().split(/\s+/);var s=((p[0]||'')[0]||'')+((p[1]||'')[0]||'');return (s||(p[0]||'?').slice(0,2)).toUpperCase();}
+function taskOpenAssign(listId,cardId){taskAssignTarget={l:listId,c:cardId};taskRerender();}
+function taskCloseAssign(){taskAssignTarget=null;render();}
+function taskToggleAssign(memberId){
+  if(!taskAssignTarget)return;var card=taskFindCard(taskAssignTarget.l,taskAssignTarget.c);if(!card)return;
+  if(!card.assignees)card.assignees=[];
+  var i=card.assignees.indexOf(memberId);
+  if(i>=0)card.assignees.splice(i,1);else card.assignees.push(memberId);
+  saveState();taskRerender();
+}
+function teamAdd(){
+  var inp=document.getElementById('team-new');if(!inp)return;var v=inp.value.trim();if(!v)return;
+  var m={id:'m'+Date.now(),name:v,color:TEAM_COLORS[TEAM.length%TEAM_COLORS.length]};
+  TEAM.push(m);
+  if(taskAssignTarget){var card=taskFindCard(taskAssignTarget.l,taskAssignTarget.c);if(card){if(!card.assignees)card.assignees=[];card.assignees.push(m.id);}}
+  saveState();taskRerender();
+}
+function teamRemove(id){
+  if(!confirm('Bu kişi tüm kartlardan kaldırılsın mı?'))return;
+  TEAM=TEAM.filter(function(m){return m.id!==id;});
+  TASKS.forEach(function(l){l.cards.forEach(function(c){if(c.assignees)c.assignees=c.assignees.filter(function(x){return x!==id;});});});
+  saveState();taskRerender();
+}
+function rTaskAssign(){
+  if(!taskAssignTarget)return '';
+  var card=taskFindCard(taskAssignTarget.l,taskAssignTarget.c);if(!card)return '';
+  var asg=card.assignees||[];
+  var rows=TEAM.map(function(m){
+    var on=asg.indexOf(m.id)>=0;
+    return '<div class="assign-row'+(on?' on':'')+'" onclick="taskToggleAssign(\''+m.id+'\')">'
+      +'<span class="t-av" style="background:'+m.color+'">'+esc(tInitials(m.name))+'</span>'
+      +'<span style="flex:1;font-size:13px;color:var(--text)">'+esc(m.name)+'</span>'
+      +(on?'<span style="color:var(--green2);display:flex">'+ic('check',16)+'</span>':'<span style="color:var(--text3);font-size:18px;line-height:1">+</span>')
+      +'<button class="task-mini" title="Kişiyi sil" onclick="event.stopPropagation();teamRemove(\''+m.id+'\')">'+ic('trash',12)+'</button>'
+      +'</div>';
+  }).join('');
+  return '<div class="modal-overlay" onclick="taskCloseAssign()"><div class="modal" onclick="event.stopPropagation()" style="max-width:420px">'
+    +'<div class="modal-head"><div><div class="modal-title">Kişi Ata</div><div class="modal-sub">'+esc((card.text||'Görev').slice(0,60))+'</div></div><button class="close-btn" onclick="taskCloseAssign()">✕</button></div>'
+    +'<div style="display:flex;flex-direction:column;gap:7px;max-height:48vh;overflow:auto">'+(rows||'<div style="color:var(--text3);font-size:12px;text-align:center;padding:10px">Henüz kişi yok — aşağıdan ekle.</div>')+'</div>'
+    +'<div style="display:flex;gap:8px;margin-top:14px"><input id="team-new" class="input" placeholder="Yeni kişi adı..." onkeydown="if(event.key===\'Enter\')teamAdd()"/><button class="btn btn-accent" onclick="teamAdd()">+ Ekle</button></div>'
+    +'</div></div>';
+}
+
 function rTasks(){
   var board=TASKS.map(function(l){
     var cards=l.cards.map(function(c){
@@ -2038,10 +2101,14 @@ function rTasks(){
         if(f.type==='video')return '<div class="task-att-img" title="'+esc(f.name)+'" '+ev+'><video src="'+f.url+'#t=0.1" muted preload="metadata"></video><span class="task-att-play">'+ic('play',12)+'</span>'+x+'</div>';
         return '<div class="task-att-file" title="'+esc(f.name)+'" '+ev+'>'+ic('doc',13)+'<span>'+esc(f.name)+'</span>'+x+'</div>';
       }).join('')+'</div>' : '';
+      var asg=(c.assignees||[]).map(function(id){return teamById(id);}).filter(Boolean);
+      var asgHtml=asg.length?'<div class="task-assignees">'+asg.slice(0,5).map(function(m){return '<span class="t-av" title="'+esc(m.name)+'" style="background:'+m.color+'">'+esc(tInitials(m.name))+'</span>';}).join('')+(asg.length>5?'<span class="t-av" style="background:var(--text3)">+'+(asg.length-5)+'</span>':'')+'</div>':'';
       return '<div class="task-card" style="border-left-color:'+l.color+'" draggable="true" ondragstart="taskDragStart(\''+l.id+'\',\''+c.id+'\')">'
         +'<div class="task-text" contenteditable="true" spellcheck="false" onblur="taskEditCard(\''+l.id+'\',\''+c.id+'\',this.innerText)">'+esc(c.text)+'</div>'
         +att
+        +asgHtml
         +'<div class="task-card-foot">'
+          +'<button class="task-mini" title="Kişi ata" onclick="taskOpenAssign(\''+l.id+'\',\''+c.id+'\')">'+ic('user',13)+'</button>'
           +'<button class="task-mini" title="Dosya ekle" onclick="taskAttach(\''+l.id+'\',\''+c.id+'\')">'+ic('paperclip',13)+'</button>'
           +'<button class="task-mini" title="Önceki listeye" onclick="taskMove(\''+l.id+'\',\''+c.id+'\',-1)">‹</button>'
           +'<button class="task-mini" title="Sonraki listeye" onclick="taskMove(\''+l.id+'\',\''+c.id+'\',1)">›</button>'
@@ -2065,7 +2132,8 @@ function rTasks(){
     +'<div style="display:flex;gap:8px"><button class="btn btn-accent btn-sm" onclick="taskAddList()">+ Liste</button><button class="btn btn-ghost btn-sm" style="color:var(--rose)" onclick="taskReset()">↺ Sıfırla</button></div>'
     +'</div>'
     +'<div class="task-board">'+board+'</div>'
-    +(adView?rAdView():'');
+    +(adView?rAdView():'')
+    +(taskAssignTarget?rTaskAssign():'');
 }
 
 /* ════════ TEMA (gece / gündüz) ═══════════════════════ */
@@ -2130,7 +2198,8 @@ var SB_APPLY={
   sentInf:function(v){if(v&&typeof v==='object')sentInf=v;},
   deletedInf:function(v){if(v&&typeof v==='object')deletedInf=v;},
   adState:function(v){if(v&&typeof v==='object')adState=v;},
-  tasks:function(v){if(Array.isArray(v))TASKS=v;}
+  tasks:function(v){if(Array.isArray(v))TASKS=v;},
+  team:function(v){if(Array.isArray(v))TEAM=v;}
 };
 function sbStatus(txt,color){var e=document.getElementById('sb-status');if(e){e.textContent=txt;e.style.color=color||'var(--text3)';}}
 function sbLoad(){
@@ -2146,7 +2215,7 @@ function sbSyncNow(){
   if(!sb)return;
   var payload=[
     {id:'ads',data:ADS},{id:'patients',data:patients},{id:'myInfluencers',data:myInfluencers},
-    {id:'sentInf',data:sentInf},{id:'deletedInf',data:deletedInf},{id:'adState',data:adState},{id:'tasks',data:TASKS}
+    {id:'sentInf',data:sentInf},{id:'deletedInf',data:deletedInf},{id:'adState',data:adState},{id:'tasks',data:TASKS},{id:'team',data:TEAM}
   ];
   sb.from('kv').upsert(payload).then(function(res){
     if(res.error)sbStatus('☁ kayıt hatası',' var(--rose)');
