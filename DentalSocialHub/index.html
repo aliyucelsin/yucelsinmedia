@@ -375,6 +375,27 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 .ad-row{display:grid;grid-template-columns:90px 96px 1fr 68px 92px 54px 54px 96px;align-items:stretch;border-bottom:1px solid var(--border);transition:background .18s,box-shadow .18s}
 .ad-up{width:100%;padding:7px 4px;border:1px dashed var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;font-size:10.5px;font-weight:600;border-radius:6px}
 .ad-up:hover{background:var(--surface);color:var(--accent2);border-color:var(--accent)}
+
+/* ── REKLAM GÖREVLERİ (Trello tarzı pano) ── */
+.task-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:14px;align-items:flex-start}
+.task-list{flex:0 0 286px;width:286px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r12);display:flex;flex-direction:column;transition:border-color .15s,background .15s}
+.task-list.task-dragover{border-color:var(--accent);background:rgba(139,125,255,0.07)}
+.task-list-head{display:flex;align-items:center;gap:8px;padding:11px 13px}
+.task-list-title{font-weight:700;font-size:13px;color:var(--text);flex:1;outline:none;border-radius:5px;padding:2px 4px;min-width:0}
+.task-list-title:focus{background:var(--surface2)}
+.task-count{font-size:11px;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:1px 9px;flex-shrink:0}
+.task-cards{padding:0 10px 4px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:62vh;min-height:24px}
+.task-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r8);padding:10px 11px;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,0.25)}
+.task-card:hover{border-color:var(--accent)}
+.task-card:active{cursor:grabbing}
+.task-text{font-size:12.5px;color:var(--text);line-height:1.45;outline:none;min-height:18px;word-break:break-word}
+.task-text:focus{background:var(--surface2);border-radius:4px}
+.task-card-foot{display:flex;gap:5px;margin-top:9px;justify-content:flex-end}
+.task-mini{width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1;flex-shrink:0}
+.task-mini:hover{background:var(--surface2);color:var(--text)}
+.task-add{padding:10px}
+.task-addlist{flex:0 0 200px}
+@media (max-width:560px){ .task-list{flex:0 0 82vw;width:82vw} .task-cards{max-height:none} }
 .ad-row>div{padding:10px 9px;font-size:12px;border-left:1px solid rgba(255,255,255,0.04);min-width:0;display:flex;align-items:center}
 .ad-row>div:first-child{border-left:none}
 .ad-row.is-done{background:linear-gradient(90deg,rgba(16,185,129,0.28),rgba(16,185,129,0.10));box-shadow:inset 5px 0 0 var(--green2)}
@@ -717,6 +738,7 @@ var ICONS={
   coins:'<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>',
+  board:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/>',
   video:'<path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/>',
   layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
   quote:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
@@ -748,7 +770,8 @@ var TABS=[
   {label:'Influencer Hub',  icon:'users',     section:'Araçlar'},
   {label:'İçerik Önerileri',icon:'bulb',      section:'Araçlar'},
   {label:'Hasta Röportajları',icon:'mic',     section:'Araçlar',badge:'AI'},
-  {label:'Reklam Yönetimi',  icon:'megaphone',section:'Araçlar'}
+  {label:'Reklam Yönetimi',  icon:'megaphone',section:'Araçlar'},
+  {label:'Reklam Görevleri', icon:'board',    section:'Araçlar'}
 ];
 
 // 🔎 Web araştırmasına dayalı gerçek trendler — Haziran 2026 (görüntülenme rakamları yaklaşıktır)
@@ -1042,6 +1065,7 @@ function saveLocalOnly(){
     localStorage.setItem('ysm_deletedInf',JSON.stringify(deletedInf));
     localStorage.setItem('ysm_adState',JSON.stringify(adState));
     localStorage.setItem('ysm_ads',JSON.stringify(ADS));
+    localStorage.setItem('ysm_tasks',JSON.stringify(TASKS));
   }catch(e){/* kota dolabilir (fotoğraflar büyükse) — sessiz geç */}
 }
 function saveState(){ saveLocalOnly(); if(typeof sbSyncDebounced==='function')sbSyncDebounced(); }
@@ -1053,6 +1077,7 @@ function loadState(){
     var d=localStorage.getItem('ysm_deletedInf');if(d)deletedInf=JSON.parse(d);
     var ad=localStorage.getItem('ysm_adState');if(ad)adState=JSON.parse(ad);
     var ax=localStorage.getItem('ysm_ads');if(ax)ADS=JSON.parse(ax);
+    var tx=localStorage.getItem('ysm_tasks');if(tx)TASKS=JSON.parse(tx);
   }catch(e){}
 }
 
@@ -1073,7 +1098,7 @@ function render(){
     });
   });
   document.getElementById('nav').innerHTML=navHTML;
-  var pages=[rDash,rTrends,rPatients,rInfluencers,rContent,rInterview,rAds];
+  var pages=[rDash,rTrends,rPatients,rInfluencers,rContent,rInterview,rAds,rTasks];
   document.getElementById('main').innerHTML=pages[activeTab]()+(apiModal?rApiModal():'');
 }
 function sw(i){activeTab=i;document.body.classList.remove('sb-open');window.scrollTo(0,0);render();}
@@ -1731,6 +1756,16 @@ var ADS=[
 var ADS_DEFAULT=JSON.stringify(ADS);   // sıfırlama için varsayılan
 var adEdit=false;
 
+/* Reklam Görevleri — Trello tarzı pano */
+var TASKS=[
+  {id:'l1',title:'Yapılacak',  color:'#7c6ef5',cards:[{id:'t1',text:'Yeni Instagram reklam görseli hazırla'},{id:'t2',text:'Google reklam metni yaz'}]},
+  {id:'l2',title:'Hazırlanıyor',color:'#38bdf8',cards:[{id:'t3',text:'TikTok video kurgusu'}]},
+  {id:'l3',title:'İncelemede', color:'#f59e0b',cards:[]},
+  {id:'l4',title:'Tamamlandı', color:'#10b981',cards:[]}
+];
+var TASKS_DEFAULT_JSON=JSON.stringify(TASKS);
+var taskDrag=null;
+
 function adNormalize(){ADS.forEach(function(c){c.rows.forEach(function(r,i){if(!r.id)r.id='c'+c.no+'_'+i;});});}
 function adCat(no){for(var i=0;i<ADS.length;i++)if(ADS[i].no==no)return ADS[i];return null;}
 function parseTL(s){var d=String(s||'').replace(/[^\d]/g,'');return d?parseInt(d,10):0;}
@@ -1908,6 +1943,63 @@ function rAds(){
     +(adView?rAdView():'');
 }
 
+/* ════════════════════════════════════════════════════
+   REKLAM GÖREVLERİ (Trello tarzı pano)
+════════════════════════════════════════════════════ */
+function taskRerender(){var m=document.getElementById('main');if(m)m.innerHTML=rTasks();}
+function taskListById(id){return TASKS.filter(function(l){return l.id===id;})[0];}
+function taskAddCard(listId){
+  var inp=document.getElementById('task-add-'+listId);if(!inp)return;var v=inp.value.trim();if(!v)return;
+  var l=taskListById(listId);if(l){l.cards.push({id:'t'+Date.now(),text:v});saveState();taskRerender();var ni=document.getElementById('task-add-'+listId);if(ni)ni.focus();}
+}
+function taskEditCard(listId,cardId,text){var l=taskListById(listId);if(!l)return;var c=l.cards.filter(function(x){return x.id===cardId;})[0];if(c){c.text=(text||'').replace(/\s+$/,'');saveState();}}
+function taskDelCard(listId,cardId){var l=taskListById(listId);if(!l)return;l.cards=l.cards.filter(function(x){return x.id!==cardId;});saveState();taskRerender();}
+function taskMove(listId,cardId,dir){
+  var i=-1,k;for(k=0;k<TASKS.length;k++)if(TASKS[k].id===listId)i=k;
+  if(i<0)return;var j=i+dir;if(j<0||j>=TASKS.length)return;
+  var l=TASKS[i],c=l.cards.filter(function(x){return x.id===cardId;})[0];if(!c)return;
+  l.cards=l.cards.filter(function(x){return x.id!==cardId;});TASKS[j].cards.push(c);saveState();taskRerender();
+}
+function taskMoveTo(cardId,fromId,toId){
+  if(fromId===toId)return;var fl=taskListById(fromId),tl=taskListById(toId);if(!fl||!tl)return;
+  var c=fl.cards.filter(function(x){return x.id===cardId;})[0];if(!c)return;
+  fl.cards=fl.cards.filter(function(x){return x.id!==cardId;});tl.cards.push(c);saveState();taskRerender();
+}
+function taskDragStart(listId,cardId){taskDrag={l:listId,c:cardId};}
+function taskDrop(listId){if(taskDrag){taskMoveTo(taskDrag.c,taskDrag.l,listId);taskDrag=null;}}
+function taskAddList(){TASKS.push({id:'l'+Date.now(),title:'Yeni Liste',color:'#8888a0',cards:[]});saveState();taskRerender();}
+function taskDelList(listId){if(!confirm('Liste ve içindeki tüm kartlar silinsin mi?'))return;TASKS=TASKS.filter(function(l){return l.id!==listId;});saveState();taskRerender();}
+function taskRenameList(listId,title){var l=taskListById(listId);if(l){l.title=(title||'').replace(/\s+$/,'')||'Liste';saveState();}}
+function taskReset(){if(!confirm('Görev panosu varsayılana sıfırlansın mı?'))return;TASKS=JSON.parse(TASKS_DEFAULT_JSON);saveState();taskRerender();}
+
+function rTasks(){
+  var board=TASKS.map(function(l){
+    var cards=l.cards.map(function(c){
+      return '<div class="task-card" draggable="true" ondragstart="taskDragStart(\''+l.id+'\',\''+c.id+'\')">'
+        +'<div class="task-text" contenteditable="true" spellcheck="false" onblur="taskEditCard(\''+l.id+'\',\''+c.id+'\',this.innerText)">'+esc(c.text)+'</div>'
+        +'<div class="task-card-foot">'
+          +'<button class="task-mini" title="Önceki listeye" onclick="taskMove(\''+l.id+'\',\''+c.id+'\',-1)">‹</button>'
+          +'<button class="task-mini" title="Sonraki listeye" onclick="taskMove(\''+l.id+'\',\''+c.id+'\',1)">›</button>'
+          +'<button class="task-mini" title="Kartı sil" onclick="taskDelCard(\''+l.id+'\',\''+c.id+'\')">'+ic('trash',12)+'</button>'
+        +'</div></div>';
+    }).join('');
+    return '<div class="task-list" ondragover="event.preventDefault();this.classList.add(\'task-dragover\')" ondragleave="this.classList.remove(\'task-dragover\')" ondrop="this.classList.remove(\'task-dragover\');taskDrop(\''+l.id+'\')">'
+      +'<div class="task-list-head" style="border-bottom:3px solid '+l.color+'">'
+        +'<div class="task-list-title" contenteditable="true" spellcheck="false" onblur="taskRenameList(\''+l.id+'\',this.innerText)">'+esc(l.title)+'</div>'
+        +'<span class="task-count">'+l.cards.length+'</span>'
+        +'<button class="task-mini" title="Listeyi sil" onclick="taskDelList(\''+l.id+'\')">'+ic('trash',12)+'</button>'
+      +'</div>'
+      +'<div class="task-cards">'+cards+'</div>'
+      +'<div class="task-add"><input id="task-add-'+l.id+'" class="input" placeholder="+ Kart ekle (Enter)" onkeydown="if(event.key===\'Enter\')taskAddCard(\''+l.id+'\')"/></div>'
+      +'</div>';
+  }).join('');
+  return '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px">'
+    +'<div class="page-header" style="margin-bottom:0"><div class="page-title">Reklam Görevleri</div><div class="page-sub">Trello tarzı görev panosu · kartı sürükle ya da ‹ › ile taşı · çift dokun düzenle</div></div>'
+    +'<div style="display:flex;gap:8px"><button class="btn btn-accent btn-sm" onclick="taskAddList()">+ Liste</button><button class="btn btn-ghost btn-sm" style="color:var(--rose)" onclick="taskReset()">↺ Sıfırla</button></div>'
+    +'</div>'
+    +'<div class="task-board">'+board+'</div>';
+}
+
 /* ════════ TEMA (gece / gündüz) ═══════════════════════ */
 function setThemeBtn(){
   var b=document.getElementById('theme-btn');
@@ -1969,7 +2061,8 @@ var SB_APPLY={
   myInfluencers:function(v){if(Array.isArray(v))myInfluencers=v;},
   sentInf:function(v){if(v&&typeof v==='object')sentInf=v;},
   deletedInf:function(v){if(v&&typeof v==='object')deletedInf=v;},
-  adState:function(v){if(v&&typeof v==='object')adState=v;}
+  adState:function(v){if(v&&typeof v==='object')adState=v;},
+  tasks:function(v){if(Array.isArray(v))TASKS=v;}
 };
 function sbStatus(txt,color){var e=document.getElementById('sb-status');if(e){e.textContent=txt;e.style.color=color||'var(--text3)';}}
 function sbLoad(){
@@ -1985,7 +2078,7 @@ function sbSyncNow(){
   if(!sb)return;
   var payload=[
     {id:'ads',data:ADS},{id:'patients',data:patients},{id:'myInfluencers',data:myInfluencers},
-    {id:'sentInf',data:sentInf},{id:'deletedInf',data:deletedInf},{id:'adState',data:adState}
+    {id:'sentInf',data:sentInf},{id:'deletedInf',data:deletedInf},{id:'adState',data:adState},{id:'tasks',data:TASKS}
   ];
   sb.from('kv').upsert(payload).then(function(res){
     if(res.error)sbStatus('☁ kayıt hatası',' var(--rose)');
