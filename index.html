@@ -362,7 +362,7 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 /* ── REKLAM YÖNETİMİ TABLOSU ── */
 .ad-wrap{overflow-x:auto;border:1px solid var(--border2);border-radius:var(--r12);background:var(--bg2)}
 .ad-table{min-width:940px}
-.ad-head{display:grid;grid-template-columns:196px 90px 96px 1fr 68px 92px 54px 54px 96px;background:#0a1026;border-bottom:1px solid var(--border2)}
+.ad-head{display:grid;grid-template-columns:196px 90px 96px 1fr 68px 92px 54px 54px 120px;background:#0a1026;border-bottom:1px solid var(--border2)}
 .ad-head>div{padding:13px 9px;font-size:10px;font-weight:700;letter-spacing:0.4px;color:#cbd5e1;text-transform:uppercase;display:flex;align-items:center;gap:6px;border-left:1px solid rgba(255,255,255,0.06)}
 .ad-head>div:first-child{border-left:none}
 .ad-cat{display:flex;border-top:1px solid var(--border)}
@@ -372,9 +372,20 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 .ad-cat-ic{flex-shrink:0;display:flex;align-items:center}
 .ad-cat-name{font-weight:800;font-size:12px;line-height:1.25;letter-spacing:0.2px}
 .ad-body{flex:1;min-width:0;display:flex;flex-direction:column}
-.ad-row{display:grid;grid-template-columns:90px 96px 1fr 68px 92px 54px 54px 96px;align-items:stretch;border-bottom:1px solid var(--border);transition:background .18s,box-shadow .18s}
+.ad-row{display:grid;grid-template-columns:90px 96px 1fr 68px 92px 54px 54px 120px;align-items:stretch;border-bottom:1px solid var(--border);transition:background .18s,box-shadow .18s}
 .ad-up{width:100%;padding:7px 4px;border:1px dashed var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;font-size:10.5px;font-weight:600;border-radius:6px}
 .ad-up:hover{background:var(--surface);color:var(--accent2);border-color:var(--accent)}
+/* Kullanılan içerik: çoklu thumbnail + hover preview */
+.ad-cr-wrap{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.ad-cr{position:relative;width:30px;height:30px;border-radius:5px;overflow:hidden;cursor:pointer;background:#000;flex-shrink:0;box-shadow:0 0 0 1px var(--border2)}
+.ad-cr img,.ad-cr video{width:100%;height:100%;object-fit:cover;display:block}
+.ad-cr-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,0.3)}
+.ad-cr-x{position:absolute;top:-5px;right:-5px;width:15px;height:15px;border-radius:50%;background:var(--rose);color:#fff;font-size:11px;line-height:1;display:none;align-items:center;justify-content:center;border:2px solid var(--bg2)}
+.ad-cr:hover .ad-cr-x{display:flex}
+.ad-cr-add{width:30px;height:30px;border-radius:5px;border:1px dashed var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:17px;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.ad-cr-add:hover{border-color:var(--accent);color:var(--accent2)}
+#ad-preview{position:fixed;display:none;z-index:3000;pointer-events:none;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:5px;box-shadow:0 14px 44px rgba(0,0,0,0.6)}
+#ad-preview img,#ad-preview video{display:block;max-width:260px;max-height:260px;border-radius:6px}
 
 /* ── REKLAM GÖREVLERİ (Trello tarzı pano) ── */
 .task-board{display:flex;gap:16px;overflow-x:auto;padding:4px 2px 18px;align-items:flex-start}
@@ -728,7 +739,9 @@ textarea.input{resize:vertical;line-height:1.7;font-family:'Inter',system-ui,san
 <div id="login-gate"></div>
 
 <!-- Reklam kreatifi yükleme (gizli) -->
-<input type="file" id="ad-fup" accept="image/jpeg,image/png,image/webp,video/mp4" style="display:none" onchange="adHandleCreative(event)"/>
+<input type="file" id="ad-fup" accept="image/jpeg,image/png,image/webp,video/mp4" multiple style="display:none" onchange="adHandleCreative(event)"/>
+<!-- Reklam içeriği hover önizleme -->
+<div id="ad-preview"></div>
 <!-- Görev kartı dosya eki (gizli, çoklu) -->
 <input type="file" id="task-fup" multiple style="display:none" onchange="taskHandleFiles(event)"/>
 
@@ -1802,7 +1815,7 @@ var TEAM=[
 ];
 var TEAM_COLORS=['#7c6ef5','#f0467f','#10b981','#f59e0b','#38bdf8','#fb7185','#a78bfa','#34d399','#f43f5e','#22d3ee'];
 
-function adNormalize(){ADS.forEach(function(c){c.rows.forEach(function(r,i){if(!r.id)r.id='c'+c.no+'_'+i;});});}
+function adNormalize(){ADS.forEach(function(c){c.rows.forEach(function(r,i){if(!r.id)r.id='c'+c.no+'_'+i;if(r.creative&&!r.creatives){r.creatives=[r.creative];delete r.creative;}});});}
 function adCat(no){for(var i=0;i<ADS.length;i++)if(ADS[i].no==no)return ADS[i];return null;}
 function parseTL(s){var d=String(s||'').replace(/[^\d]/g,'');return d?parseInt(d,10):0;}
 function formatTL(n){return (n||0).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')+' TL';}
@@ -1838,26 +1851,42 @@ function adUploadCreative(no,id){
   var inp=document.getElementById('ad-fup');if(inp){inp.value='';inp.click();}
 }
 function adHandleCreative(e){
-  var f=e.target.files[0]; if(!f||!adUpTarget||!sb)return;
+  var files=e.target.files; if(!files||!files.length||!adUpTarget||!sb)return;
   var t=adUpTarget; adUpTarget=null;
-  var isVid=(f.type.indexOf('video')>=0)||/\.mp4$/i.test(f.name);
-  var ext=isVid?'mp4':(f.name.split('.').pop()||'jpg').toLowerCase().replace('jpeg','jpg');
-  var path=t.no+'_'+t.id+'_'+Date.now()+'.'+ext;
-  sbStatus('☁ içerik yükleniyor…','var(--text3)');
-  sb.storage.from('creatives').upload(path,f,{contentType:f.type,upsert:true}).then(function(res){
-    if(res.error){alert('Yükleme hatası: '+res.error.message);sbStatus('☁ yükleme hatası','var(--rose)');return;}
-    var url=sb.storage.from('creatives').getPublicUrl(path).data.publicUrl;
-    var r=adRowById(t.no,t.id);
-    if(r){ r.creative={url:url,type:isVid?'video':'image',name:f.name,path:path}; saveState(); adRerender(); sbStatus('☁ içerik yüklendi ✓','var(--green2)'); }
-  }).catch(function(err){alert('Yükleme hatası: '+(err&&err.message||err));sbStatus('☁ yükleme hatası','var(--rose)');});
+  var r=adRowById(t.no,t.id); if(!r)return; if(!r.creatives)r.creatives=[];
+  var arr=Array.prototype.slice.call(files),done=0;
+  sbStatus('☁ yükleniyor… (0/'+arr.length+')','var(--text3)');
+  var ups=arr.map(function(f,i){
+    var isVid=(f.type.indexOf('video')>=0)||/\.mp4$/i.test(f.name);
+    var ext=isVid?'mp4':(f.name.split('.').pop()||'jpg').toLowerCase().replace('jpeg','jpg');
+    var path=t.no+'_'+t.id+'_'+Date.now()+'_'+i+'.'+ext;
+    return sb.storage.from('creatives').upload(path,f,{contentType:f.type,upsert:true}).then(function(res){
+      if(res.error)throw res.error; done++; sbStatus('☁ yükleniyor… ('+done+'/'+arr.length+')','var(--text3)');
+      return {url:sb.storage.from('creatives').getPublicUrl(path).data.publicUrl,type:isVid?'video':'image',name:f.name,path:path};
+    });
+  });
+  Promise.all(ups).then(function(res){res.forEach(function(x){r.creatives.push(x);});saveState();adRerender();sbStatus('☁ '+res.length+' içerik eklendi ✓','var(--green2)');})
+  .catch(function(err){alert('Yükleme hatası: '+(err&&err.message||err));sbStatus('☁ yükleme hatası','var(--rose)');saveState();adRerender();});
 }
-function adDelCreative(no,id){
-  if(!confirm('Yüklenen içerik kaldırılsın mı?'))return;
-  var r=adRowById(no,id);
-  if(r&&r.creative){ if(sb&&r.creative.path){sb.storage.from('creatives').remove([r.creative.path]).catch(function(){});} delete r.creative; saveState(); adRerender(); }
+function adDelCreative(no,id,idx){
+  var r=adRowById(no,id);if(!r||!r.creatives||!r.creatives[idx])return;
+  var f=r.creatives[idx];if(sb&&f.path)sb.storage.from('creatives').remove([f.path]).catch(function(){});
+  r.creatives.splice(idx,1);saveState();adRerender();
 }
-function adViewCreative(no,id){var r=adRowById(no,id);if(r&&r.creative){adView=r.creative;adRerender();}}
+function adViewCreative(no,id,idx){var r=adRowById(no,id);if(r&&r.creatives&&r.creatives[idx]){adView=r.creatives[idx];adRerender();}}
 function adCloseView(){adView=null;render();}
+function adPreviewShow(el,url,type){
+  var p=document.getElementById('ad-preview');if(!p)return;
+  p.innerHTML = type==='video' ? '<video src="'+url+'" muted autoplay loop playsinline></video>' : '<img src="'+url+'">';
+  p.style.display='block';
+  var rc=el.getBoundingClientRect(), pw=p.offsetWidth||272, ph=p.offsetHeight||200;
+  var left=rc.right+10, top=rc.top-(ph/2)+rc.height/2;
+  if(left+pw>window.innerWidth-8)left=rc.left-pw-10;
+  if(left<8)left=8;
+  if(top<8)top=8; if(top+ph>window.innerHeight-8)top=window.innerHeight-ph-8;
+  p.style.left=left+'px';p.style.top=top+'px';
+}
+function adPreviewHide(){var p=document.getElementById('ad-preview');if(p){p.style.display='none';p.innerHTML='';}}
 function rAdView(){
   if(!adView)return '';
   var media=adView.type==='video'
@@ -1870,14 +1899,16 @@ function rAdView(){
     +'</div></div>';
 }
 function adCreativeCell(no,r){
-  var cr=r.creative;
-  if(cr){
-    var thumb=cr.type==='video'
-      ? '<div style="position:relative;width:42px;height:30px;border-radius:5px;overflow:hidden;background:#000;cursor:pointer;flex-shrink:0" onclick="adViewCreative('+no+',\''+r.id+'\')"><video src="'+cr.url+'#t=0.1" muted preload="metadata" style="width:100%;height:100%;object-fit:cover"></video><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,0.3)">'+ic('play',12)+'</span></div>'
-      : '<img src="'+cr.url+'" onclick="adViewCreative('+no+',\''+r.id+'\')" style="width:42px;height:30px;object-fit:cover;border-radius:5px;cursor:pointer;flex-shrink:0;box-shadow:0 0 0 1px var(--border2)"/>';
-    return '<div style="display:flex;align-items:center;gap:5px">'+thumb+(adEdit?'<button class="icon-btn danger" title="Kaldır" onclick="adDelCreative('+no+',\''+r.id+'\')" style="width:24px;height:24px">'+ic('trash',12)+'</button>':'')+'</div>';
-  }
-  return '<button class="ad-up" onclick="adUploadCreative('+no+',\''+r.id+'\')">⬆ Yükle</button>';
+  var arr=r.creatives||[];
+  var thumbs=arr.map(function(cr,idx){
+    var inner=cr.type==='video'
+      ? '<video src="'+cr.url+'#t=0.1" muted preload="metadata"></video><span class="ad-cr-play">'+ic('play',10)+'</span>'
+      : '<img src="'+cr.url+'"/>';
+    return '<div class="ad-cr" title="'+esc(cr.name||'')+'" onmouseenter="adPreviewShow(this,\''+cr.url+'\',\''+cr.type+'\')" onmouseleave="adPreviewHide()" onclick="adPreviewHide();adViewCreative('+no+',\''+r.id+'\','+idx+')">'+inner
+      +'<span class="ad-cr-x" title="Kaldır" onclick="event.stopPropagation();adPreviewHide();adDelCreative('+no+',\''+r.id+'\','+idx+')">×</span>'
+      +'</div>';
+  }).join('');
+  return '<div class="ad-cr-wrap">'+thumbs+'<button class="ad-cr-add" title="Görsel/video ekle" onclick="adUploadCreative('+no+',\''+r.id+'\')">+</button></div>';
 }
 function adToggle(id,which){var k=id+'-'+which;if(adState[k])delete adState[k];else adState[k]=1;saveState();adRerender();}
 function adToggleEdit(){adEdit=!adEdit;adRerender();}
