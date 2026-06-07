@@ -1197,19 +1197,19 @@ function autoSendBody(){
   var full=modal.data.caption!=null?modal.data.caption:((q.caption||'')+(q.engagement?'\n\n'+q.engagement:'')+'\n\n'+(q.hashtags||''));
   var cover=modal.data.coverUrl||q.coverUrl;
   return '<div style="background:var(--surface);border-radius:var(--r12);padding:12px;font-size:13px"><b>'+esc(q.title)+'</b> · '+esc(q.format||'Reels')+'</div>'
-    +'<div><label class="label">Medya (kendi foto/videon — JPG/PNG/MP4)</label><input class="input" id="auto-file" type="file" accept="image/*,video/mp4,video/quicktime"/></div>'
+    +'<div><label class="label">① Ana medya — video (Reels) veya fotoğraf</label><input class="input" id="auto-file" type="file" accept="image/*,video/mp4,video/quicktime"/></div>'
     +'<div style="border:1px dashed var(--border2);border-radius:var(--r12);padding:12px;background:rgba(196,75,255,0.05)">'
-      +'<div style="font-size:12.5px;font-weight:600;margin-bottom:8px">🎨 Video/foto eklemezsen — otomatik kapak tasarla</div>'
-      +(cover?'<img src="'+cover+'" alt="kapak" style="width:100%;max-height:300px;object-fit:contain;border-radius:var(--r10);margin-bottom:8px;background:#000"/>':'')
-      +'<button class="btn btn-sm" id="cover-btn" onclick="genCover(\''+q.id+'\')">'+(cover?'↻ Farklı tema dene':ic('studio')+' Otomatik kapak üret')+'</button>'
-      +(cover?' <span style="font-size:11.5px;color:var(--green2);font-weight:600">✓ kapak hazır, kullanılacak</span>':'')
-      +'<div style="font-size:11px;color:var(--text3);margin-top:7px">İçeriğin <b>hook/başlığı</b> marka renklerinde kapak olur. Kullanılırsa <b>foto gönderisi</b> paylaşılır (Reels için kendi videon gerekir).</div>'
-      +'<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">'
-        +'<div style="font-size:12.5px;font-weight:600;margin-bottom:6px">✨ Daha kaliteli görsel mi? ChatGPT için kreatif prompt üret</div>'
-        +'<button class="btn btn-sm" id="imgprompt-btn" onclick="genImgPrompt(\''+q.id+'\')">'+ic('studio')+' ChatGPT görsel promtu üret</button>'
-        +(modal.data.imgPrompt?'<textarea class="textarea" id="imgprompt-out" style="margin-top:8px;min-height:96px">'+esc(modal.data.imgPrompt)+'</textarea>'
-            +'<div style="display:flex;gap:8px;margin-top:6px"><button class="btn btn-sm" onclick="copyText(document.getElementById(\'imgprompt-out\').value,\'Görsel promtu\')">'+ic('copy')+' Kopyala</button><a class="btn btn-sm" href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT\'yi aç</a></div>'
-            +'<div style="font-size:11px;color:var(--text3);margin-top:6px">Promtu kopyala → ChatGPT\'de görseli üret → indir → yukarıdaki <b>"Choose File"</b> ile ekle → Şimdi Paylaş.</div>':'')
+      +'<div style="font-size:12.5px;font-weight:600;margin-bottom:8px">② Kapak görseli <span style="color:var(--text3);font-weight:400">— video yüklersen Reels kapağı, video yoksa gönderinin kendisi olur</span></div>'
+      +(cover?'<img src="'+cover+'" alt="kapak" style="width:100%;max-height:280px;object-fit:contain;border-radius:var(--r10);margin-bottom:8px;background:#000"/>'
+          +'<div style="font-size:11.5px;color:var(--green2);font-weight:600;margin-bottom:8px">✓ kapak hazır, kullanılacak</div>':'')
+      +'<div style="display:flex;flex-direction:column;gap:8px">'
+        +'<div><label class="label" style="font-size:11px">Dışarıdan kapak fotoğrafı yükle</label><input class="input" id="auto-cover-file" type="file" accept="image/*" onchange="loadCoverFile(this)"/></div>'
+        +'<button class="btn btn-sm" id="cover-btn" onclick="genCover(\''+q.id+'\')">'+(cover?'↻ Otomatik kapak — farklı tema':ic('studio')+' Otomatik kapak üret (hook\'lu)')+'</button>'
+        +'<button class="btn btn-sm" id="imgprompt-btn" onclick="genImgPrompt(\''+q.id+'\')">'+ic('studio')+' ChatGPT için görsel promtu üret</button>'
+        +(modal.data.imgPrompt?'<textarea class="textarea" id="imgprompt-out" style="min-height:90px">'+esc(modal.data.imgPrompt)+'</textarea>'
+            +'<div style="display:flex;gap:8px"><button class="btn btn-sm" onclick="copyText(document.getElementById(\'imgprompt-out\').value,\'Görsel promtu\')">'+ic('copy')+' Kopyala</button><a class="btn btn-sm" href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT\'yi aç</a></div>'
+            +'<div style="font-size:11px;color:var(--text3)">ChatGPT\'de üret → indir → yukarıdaki "kapak fotoğrafı yükle" ile ekle.</div>':'')
+        +(cover?'<button class="btn btn-ghost btn-sm" onclick="clearCover()">Kapağı kaldır</button>':'')
       +'</div>'
     +'</div>'
     +'<div><label class="label">Caption (düzenleyebilirsin)</label><textarea class="textarea" id="auto-caption" style="min-height:110px">'+esc(full)+'</textarea></div>'
@@ -1219,8 +1219,17 @@ function autoSendBody(){
       +'<button class="btn btn-lg" style="flex:1" id="autosend-btn" onclick="doAutoSend(\''+q.id+'\',false)">'+ic('clock')+' Zamanla</button>'
       +'<button class="btn btn-accent btn-lg" style="flex:1" id="autosend-now-btn" onclick="doAutoSend(\''+q.id+'\',true)">'+ic('bolt')+' Şimdi Paylaş</button>'
     +'</div>'
-    +'<div class="tip-box"><b>Zamanla:</b> belirttiğin saatte otomatik paylaşır. <b>Şimdi Paylaş:</b> hemen @'+esc(settings.handle||'yucelsinmedia')+'\'ya yükler. Kendi videon → Reels; AI kapak → foto gönderisi.</div>';
+    +'<div class="tip-box"><b>Video + kapak:</b> Reels olarak paylaşılır, kapak fotoğrafı thumbnail olur. <b>Sadece kapak/foto:</b> foto gönderisi olur. <b>Zamanla</b> = viral saatte otomatik · <b>Şimdi Paylaş</b> = anında @'+esc(settings.handle||'yucelsinmedia')+'.</div>';
 }
+function readFileData(file){return new Promise(function(res,rej){var fr=new FileReader();fr.onload=function(){res(fr.result);};fr.onerror=rej;fr.readAsDataURL(file);});}
+function loadCoverFile(input){var f=input&&input.files&&input.files[0];if(!f)return;
+  var capEl=document.getElementById('auto-caption');if(capEl)modal.data.caption=capEl.value;
+  var whenEl=document.getElementById('auto-when');if(whenEl)modal.data.when=whenEl.value;
+  readFileData(f).then(function(d){modal.data.coverUrl=d;render();});}
+function clearCover(){delete modal.data.coverUrl;var q=queue.find(function(x){return x.id===modal.data.id;});if(q)delete q.coverUrl;render();}
+function uploadData(filename,dataB64){var hdr={'content-type':'application/json','x-api-token':settings.autoToken||''};
+  return fetch(settings.autoUrl+'/api/upload',{method:'POST',headers:hdr,body:JSON.stringify({filename:filename,dataBase64:dataB64})})
+    .then(function(r){return r.json();}).then(function(u){if(!u.ok)throw new Error(u.error||'yükleme hatası');return u.url;});}
 function asStatus(ok,msg){var el=document.getElementById('autosend-status');if(!el)return;el.style.display='block';
   el.style.background=ok?'rgba(16,185,129,0.1)':'rgba(251,80,114,0.1)';el.style.color=ok?'var(--green2)':'#fda4af';el.innerHTML=msg;}
 /* video/foto yoksa: tarayıcıda Canvas ile markalı kapak (hook/başlık metinli) — anahtarsız, anında, %100 çalışır */
@@ -1301,40 +1310,39 @@ function doAutoSend(id,now){
   function unlock(){if(b1){b1.disabled=false;b1.innerHTML='⏰ Zamanla';}if(b2){b2.disabled=false;b2.innerHTML='⚡ Şimdi Paylaş';}}
   lock();
   asStatus(true,'<span class="spinner" style="border-top-color:var(--green2)"></span> '+(now?'Yükleniyor & paylaşılıyor (video ise 1 dk sürebilir)...':'Medya yükleniyor...'));
-  function upload(filename,dataB64,isVideo){
-    var hdr={'content-type':'application/json','x-api-token':settings.autoToken||''};
-    fetch(settings.autoUrl+'/api/upload',{method:'POST',headers:hdr,body:JSON.stringify({filename:filename,dataBase64:dataB64})})
-      .then(function(r){return r.json();}).then(function(u){
-        if(!u.ok)throw new Error(u.error||'yükleme hatası');
-        return fetch(settings.autoUrl+'/api/posts',{method:'POST',headers:hdr,body:JSON.stringify({title:q.title,caption:caption,mediaUrl:u.url,mediaType:isVideo?'REELS':'IMAGE',scheduledAt:scheduledAt})})
-          .then(function(r){return r.json();}).then(function(p){
-            if(!p.ok)throw new Error(p.error||'gönderi hatası');
-            if(now){
-              // hemen yayınla
-              return fetch(settings.autoUrl+'/api/publish/'+p.post.id,{method:'POST',headers:hdr})
-                .then(function(r){return r.json();}).then(function(pub){
-                  if(!pub.ok)throw new Error(pub.error||'paylaşım hatası');
-                  q.autoStatus='published';q.autoId=p.post.id;q.status='done';save();
-                  asStatus(true,'🎉 PAYLAŞILDI! @'+(settings.handle||'yucelsinmedia')+' hesabında yayında. (medya id: '+esc(pub.igMediaId||'')+')');
-                  setTimeout(function(){closeModal();render();},1800);
-                });
-            }else{
-              q.autoStatus='scheduled';q.autoId=p.post.id;q.date=whenVal?whenVal.slice(0,10):q.date;q.time=whenVal?whenVal.slice(11,16):q.time;save();
-              asStatus(true,'✓ Zamanlandı! Backend '+new Date(scheduledAt).toLocaleString('tr-TR')+' tarihinde otomatik paylaşacak.');
-              setTimeout(function(){closeModal();render();},1500);
-            }
-          });
-      }).catch(function(e){asStatus(false,'Hata: '+esc(e.message));unlock();});
-  }
+  var hdr={'content-type':'application/json','x-api-token':settings.autoToken||''};
+  // payload hazırla: video+kapak / sadece foto / sadece kapak
+  var prep;
   if(f){
     var isVideo=/video|mp4|mov|quicktime/i.test(f.type)||/\.(mp4|mov)$/i.test(f.name);
-    var reader=new FileReader();
-    reader.onload=function(){upload(f.name,reader.result,isVideo);};
-    reader.onerror=function(){asStatus(false,'Dosya okunamadı.');unlock();};
-    reader.readAsDataURL(f);
+    prep=readFileData(f).then(function(d){return uploadData(f.name,d);}).then(function(mediaUrl){
+      if(isVideo){
+        if(cover){return uploadData('kapak.jpg',cover).then(function(cu){return {mediaUrl:mediaUrl,mediaType:'REELS',coverUrl:cu};});}
+        return {mediaUrl:mediaUrl,mediaType:'REELS'};
+      }
+      return {mediaUrl:mediaUrl,mediaType:'IMAGE'}; // foto gönderisi (kapak yok sayılır)
+    });
   }else{
-    upload('ai-kapak.jpg',cover,false);
+    prep=uploadData('kapak.jpg',cover).then(function(mediaUrl){return {mediaUrl:mediaUrl,mediaType:'IMAGE'};});
   }
+  prep.then(function(payload){
+    payload.title=q.title;payload.caption=caption;payload.scheduledAt=scheduledAt;
+    return fetch(settings.autoUrl+'/api/posts',{method:'POST',headers:hdr,body:JSON.stringify(payload)}).then(function(r){return r.json();});
+  }).then(function(p){
+    if(!p.ok)throw new Error(p.error||'gönderi hatası');
+    if(now){
+      return fetch(settings.autoUrl+'/api/publish/'+p.post.id,{method:'POST',headers:hdr}).then(function(r){return r.json();}).then(function(pub){
+        if(!pub.ok)throw new Error(pub.error||'paylaşım hatası');
+        q.autoStatus='published';q.autoId=p.post.id;q.status='done';save();
+        asStatus(true,'🎉 PAYLAŞILDI! @'+(settings.handle||'yucelsinmedia')+' hesabında yayında.');
+        setTimeout(function(){closeModal();render();},1800);
+      });
+    }else{
+      q.autoStatus='scheduled';q.autoId=p.post.id;q.date=whenVal?whenVal.slice(0,10):q.date;q.time=whenVal?whenVal.slice(11,16):q.time;save();
+      asStatus(true,'✓ Zamanlandı! Backend '+new Date(scheduledAt).toLocaleString('tr-TR')+' tarihinde otomatik paylaşacak.');
+      setTimeout(function(){closeModal();render();},1500);
+    }
+  }).catch(function(e){asStatus(false,'Hata: '+esc(e.message));unlock();});
 }
 
 /* ════════════════════════════════════════════════════

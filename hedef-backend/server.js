@@ -128,8 +128,10 @@ async function publishPost(post) {
 
   const isVideo = post.mediaType === 'REELS' || post.mediaType === 'VIDEO' || /\.(mp4|mov)$/i.test(post.mediaUrl);
   const params = { access_token: cfg.accessToken, caption: post.caption || '' };
-  if (isVideo) { params.media_type = 'REELS'; params.video_url = post.mediaUrl; }
-  else         { params.image_url = post.mediaUrl; }
+  if (isVideo) {
+    params.media_type = 'REELS'; params.video_url = post.mediaUrl;
+    if (post.coverUrl) params.cover_url = post.coverUrl; // Reels kapak fotoğrafı
+  } else { params.image_url = post.mediaUrl; }
 
   // 1) container oluştur
   const created = await graph('POST', cfg.igUserId + '/media', params);
@@ -265,6 +267,7 @@ const server = http.createServer(async function (req, res) {
         title: (body.title || '').toString().slice(0, 200),
         caption: (body.caption || '').toString().slice(0, 2200),
         mediaUrl: body.mediaUrl.toString(),
+        coverUrl: (body.coverUrl || '').toString(),
         mediaType: (body.mediaType || 'IMAGE').toString().toUpperCase(),
         scheduledAt: body.scheduledAt || new Date().toISOString(),
         status: 'scheduled',
