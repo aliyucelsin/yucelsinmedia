@@ -613,12 +613,16 @@ function rStudio(){
   return h;
 }
 function studioSet(k,v){studioState[k]=v;render();}
+var editIdeaId=null;
 function ideaCardHTML(it){
+  if(editIdeaId===it.id)return ideaEditHTML(it);
   var sc=it.viralScore||70;var scCol=sc>=85?'linear-gradient(135deg,#ff5da2,#c44bff)':sc>=70?'linear-gradient(135deg,#8b5cff,#38bdf8)':'rgba(120,120,140,0.5)';
   var fmt=(it.format||'Reels');
   var h='<div class="idea-card">';
   h+='<div class="idea-top"><div><span class="pill pill-'+fmt.toLowerCase()+'">'+esc(fmt)+'</span> '+(it.ref?'<span style="font-size:11px;color:var(--text3)">@'+esc(it.ref)+'</span>':'')+'<div class="idea-title" style="margin-top:8px">'+esc(it.title)+'</div></div>'
     +'<div class="score-ring" style="background:'+scCol+'" title="Viral skoru">'+sc+'</div></div>';
+  if(it.coverUrl)h+='<div><img src="'+it.coverUrl+'" alt="kapak" style="width:100%;border-radius:var(--r10);max-height:240px;object-fit:contain;background:#000"/>'
+    +'<div style="display:flex;gap:7px;margin-top:6px"><button class="btn btn-sm" onclick="genIdeaCover(\''+it.id+'\')">↻ Tema</button><button class="btn btn-sm" onclick="downloadDataUrl(ideaCover(\''+it.id+'\'),\'kapak.jpg\')">'+ic('copy')+' İndir</button><button class="btn btn-ghost btn-sm" onclick="removeIdeaCover(\''+it.id+'\')">Kaldır</button></div></div>';
   if(it.hook)h+='<div class="idea-hook">🎬 '+esc(it.hook)+'</div>';
   if(it.script)h+='<div class="idea-block"><b>Senaryo:</b> '+esc(it.script)+'</div>';
   if(it.sound)h+='<div class="idea-block"><b>Ses/Trend:</b> '+esc(it.sound)+'</div>';
@@ -626,11 +630,57 @@ function ideaCardHTML(it){
   if(it.caption)h+='<div class="idea-block"><b>Caption:</b> '+esc(it.caption)+'</div>';
   if(it.hashtags)h+='<div class="idea-hashtags">'+esc(it.hashtags)+'</div>';
   h+='<div class="idea-actions">'
+    +'<button class="btn btn-sm" onclick="editIdea(\''+it.id+'\')">'+ic('edit')+' Düzenle</button>'
+    +(it.coverUrl?'':'<button class="btn btn-sm" onclick="genIdeaCover(\''+it.id+'\')">'+ic('studio')+' Kapak üret</button>')
+    +'<button class="btn btn-sm" onclick="openIdeaPrompt(\''+it.id+'\')">💬 Görsel promtu</button>'
     +'<button class="btn btn-sm" onclick="copyIdea(\''+it.id+'\')">'+ic('copy')+' Kopyala</button>'
-    +'<button class="btn btn-sm btn-accent" onclick="ideaToQueue(\''+it.id+'\')">'+ic('queue')+' Kuyruğa ekle</button>'
+    +'<button class="btn btn-sm btn-accent" onclick="ideaToQueue(\''+it.id+'\')">'+ic('queue')+' Kuyruğa</button>'
     +'<button class="btn btn-ghost btn-sm" onclick="deleteIdea(\''+it.id+'\')" style="margin-left:auto">'+ic('trash')+'</button>'
     +'</div></div>';
   return h;
+}
+function ideaEditHTML(it){
+  function fld(key,label,val,ta){return '<div style="margin-bottom:10px"><label class="label">'+label+'</label>'+(ta?'<textarea class="textarea" id="ed-'+key+'-'+it.id+'" style="min-height:60px">'+esc(val||'')+'</textarea>':'<input class="input" id="ed-'+key+'-'+it.id+'" value="'+esc(val||'')+'"/>')+'</div>';}
+  return '<div class="idea-card" style="border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)">'
+    +'<div style="font-family:Sora;font-weight:700;font-size:14px;margin-bottom:10px">✏️ Düzenle</div>'
+    +fld('title','Başlık',it.title)
+    +fld('hook','Hook (ilk saniye)',it.hook,true)
+    +fld('script','Senaryo',it.script,true)
+    +fld('sound','Ses / Trend',it.sound)
+    +fld('eng','Etkileşim tuzağı',it.engagement,true)
+    +fld('cap','Caption',it.caption,true)
+    +fld('tags','Hashtag',it.hashtags,true)
+    +'<div style="display:flex;gap:8px;margin-top:6px"><button class="btn btn-accent btn-sm" onclick="saveIdeaEdit(\''+it.id+'\')">'+ic('check')+' Kaydet</button><button class="btn btn-ghost btn-sm" onclick="cancelEdit()">İptal</button></div>'
+  +'</div>';
+}
+function editIdea(id){editIdeaId=id;render();}
+function cancelEdit(){editIdeaId=null;render();}
+function saveIdeaEdit(id){
+  var it=ideas.find(function(x){return x.id===id;});if(!it)return;
+  function v(k){var e=document.getElementById('ed-'+k+'-'+id);return e?e.value:undefined;}
+  var t=v('title');if(t!=null&&t.trim())it.title=t.trim();
+  it.hook=v('hook');it.script=v('script');it.sound=v('sound');it.engagement=v('eng');it.caption=v('cap');it.hashtags=v('tags');
+  editIdeaId=null;save();toast('Güncellendi ✓','ok');render();
+}
+function ideaCover(id){var it=ideas.find(function(x){return x.id===id;});return it?it.coverUrl:'';}
+function genIdeaCover(id){
+  var it=ideas.find(function(x){return x.id===id;});if(!it)return;
+  var ti=(it.coverTheme==null?0:(it.coverTheme+1)%COVER_THEMES.length);it.coverTheme=ti;
+  var text=(it.hook&&it.hook.length<=110)?it.hook:it.title;
+  var go=function(){try{drawCover(text,COVER_THEMES[ti],function(d){it.coverUrl=d;save();render();});}catch(e){toast('Kapak çizilemedi','err');}};
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go);else go();
+}
+function removeIdeaCover(id){var it=ideas.find(function(x){return x.id===id;});if(it){delete it.coverUrl;delete it.coverTheme;save();render();}}
+function downloadDataUrl(d,name){if(!d)return;var a=document.createElement('a');a.href=d;a.download=name||'gorsel.jpg';document.body.appendChild(a);a.click();a.remove();}
+function openIdeaPrompt(id){modal={type:'ideaprompt',data:{id:id}};render();genIdeaImgPrompt(id);}
+function genIdeaImgPrompt(id){
+  var it=ideas.find(function(x){return x.id===id;});if(!it)return;
+  if(!getApiKey()){modal.data.err='Önce AI anahtarı bağla (sol alt AI).';render();return;}
+  modal.data.loading=true;modal.data.err='';render();
+  var st=settings.style||defaultStyle();
+  callAI('Bir görsel üretme AI\'ı (ChatGPT/DALL-E) için DETAYLI, KREATİF tek bir İngilizce görsel promtu yaz. Instagram 4:5 dikey, scroll-stopper, yüksek kaliteli. İçerik: "'+it.title+'"'+(it.hook?(' — '+it.hook):'')+'. Tarz/ton: '+(st.tone||'')+'; konular: '+(st.topics||'')+'. Sahne, kompozisyon, ışık, renk paleti, mood, sanat stili, kamera/lens belirt. SADECE İngilizce promtu yaz.',450,false)
+    .then(function(p){modal.data.loading=false;modal.data.prompt=(p||'').trim();render();})
+    .catch(function(e){modal.data.loading=false;modal.data.err=e.message;render();});
 }
 function generateIdeas(){
   if(busy)return;
@@ -677,7 +727,7 @@ function deleteIdea(id){ideas=ideas.filter(function(x){return x.id!==id;});save(
 function clearIdeas(){if(confirm('Tüm fikirler silinsin mi?')){ideas=[];save();render();}}
 function ideaToQueue(id){var it=ideas.find(function(x){return x.id===id;});if(!it)return;
   var nv=nextViralWindow();var d=nv||new Date();
-  queue.unshift({id:uid(),title:it.title,hook:it.hook,script:it.script,sound:it.sound,engagement:it.engagement,caption:it.caption,hashtags:it.hashtags,format:it.format,ref:it.ref,viralScore:it.viralScore,
+  queue.unshift({id:uid(),title:it.title,hook:it.hook,script:it.script,sound:it.sound,engagement:it.engagement,caption:it.caption,hashtags:it.hashtags,format:it.format,ref:it.ref,viralScore:it.viralScore,coverUrl:it.coverUrl,
     date:dkey(d),time:pad(d.getHours())+':00',status:'ready',notified:false});
   save();toast('Kuyruğa eklendi → '+fmtDate(d),'ok');render();
 }
@@ -949,6 +999,7 @@ function renderModal(){
   if(t==='schedule')return modalShell('Zamanı Ayarla','Viral saate denk getir',scheduleBody());
   if(t==='day')return modalShell(fmtDate(modal.data.key)+' — Plan','Bu güne içerik planla',dayBody());
   if(t==='style')return modalShell('🎨 Kendi Tarzım / Marka Sesi','AI üretirken bu tanıma sadık kalır — ne kadar net, o kadar isabetli',styleBody());
+  if(t==='ideaprompt')return modalShell('💬 ChatGPT Görsel Promtu','Kopyala → ChatGPT\'de üret → indir → kuyruğa eklerken görsel olarak kullan',ideaPromptBody());
   if(t==='auto')return modalShell('Otomasyon (Instagram API)','Backend\'e bağlan — viral saatte kendiliğinden paylaşsın',autoBody());
   if(t==='autosend')return modalShell('Otomatik Paylaşıma Gönder','Medya ekle + zamanla → backend yayınlar',autoSendBody());
   return '';
@@ -988,6 +1039,19 @@ function saveSettings(){
   settings.goal=parseInt(document.getElementById('set-goal').value)||10000;
   save();closeModal();toast('Kaydedildi ✓','ok');}
 
+function ideaPromptBody(){
+  var d=modal.data;var it=ideas.find(function(x){return x.id===d.id;})||{};
+  var h='<div style="background:var(--surface);border-radius:var(--r12);padding:12px;font-size:13px"><b>'+esc(it.title||'')+'</b></div>';
+  if(d.err)h+='<div style="background:rgba(251,80,114,0.1);border:1px solid rgba(251,80,114,0.3);color:#fda4af;border-radius:var(--r10);padding:10px 13px;font-size:12.5px">'+esc(d.err)+'</div>';
+  if(d.loading)h+='<div style="text-align:center;padding:18px;color:var(--text2)"><span class="spinner" style="border-top-color:var(--accent2)"></span> Kreatif prompt yazılıyor...</div>';
+  else if(d.prompt){
+    h+='<div><label class="label">ChatGPT/DALL-E görsel promtu (İngilizce)</label><textarea class="textarea" id="ideaprompt-out" style="min-height:130px">'+esc(d.prompt)+'</textarea></div>'
+      +'<div style="display:flex;gap:8px"><button class="btn btn-accent btn-lg" style="flex:1" onclick="copyText(document.getElementById(\'ideaprompt-out\').value,\'Görsel promtu\')">'+ic('copy')+' Kopyala</button><a class="btn btn-lg" href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT\'yi aç</a></div>'
+      +'<button class="btn btn-ghost btn-sm" onclick="genIdeaImgPrompt(\''+d.id+'\')">↻ Yeniden üret</button>'
+      +'<div class="tip-box">Promtu kopyala → ChatGPT\'de görseli oluştur → indir. Sonra fikri <b>Kuyruğa</b> ekleyip <b>Otomatik</b> ekranında "Choose File" ile görseli yükle.</div>';
+  }
+  return h;
+}
 function styleBody(){
   var s=settings.style||defaultStyle();
   function f(id,label,val,ph,ta){return '<div><label class="label">'+label+'</label>'+(ta?('<textarea class="textarea" id="'+id+'" style="min-height:64px" placeholder="'+esc(ph)+'">'+esc(val)+'</textarea>'):('<input class="input" id="'+id+'" value="'+esc(val)+'" placeholder="'+esc(ph)+'"/>'))+'</div>';}
@@ -1092,7 +1156,7 @@ function dayBody(){
 function openDayModal(key){openModal('day',{key:key});}
 function planIdeaToDay(key){var sel=document.getElementById('day-idea');var id=sel?sel.value:'';if(!id){toast('Bir fikir seç','err');return;}
   var it=ideas.find(function(x){return x.id===id;});if(!it)return;var time=document.getElementById('day-time').value||'20:00';
-  queue.unshift({id:uid(),title:it.title,hook:it.hook,script:it.script,sound:it.sound,engagement:it.engagement,caption:it.caption,hashtags:it.hashtags,format:it.format,ref:it.ref,viralScore:it.viralScore,date:key,time:time,status:'ready',notified:false});
+  queue.unshift({id:uid(),title:it.title,hook:it.hook,script:it.script,sound:it.sound,engagement:it.engagement,caption:it.caption,hashtags:it.hashtags,format:it.format,ref:it.ref,viralScore:it.viralScore,coverUrl:it.coverUrl,date:key,time:time,status:'ready',notified:false});
   save();toast('Takvime eklendi ✓','ok');openDayModal(key);}
 
 /* ════════════════════════════════════════════════════
@@ -1131,7 +1195,7 @@ function autoSendBody(){
   var q=queue.find(function(x){return x.id===modal.data.id;});if(!q)return '<div>Bulunamadı</div>';
   var dtLocal=modal.data.when||((q.date||'')+'T'+(q.time||'20:00'));
   var full=modal.data.caption!=null?modal.data.caption:((q.caption||'')+(q.engagement?'\n\n'+q.engagement:'')+'\n\n'+(q.hashtags||''));
-  var cover=modal.data.coverUrl;
+  var cover=modal.data.coverUrl||q.coverUrl;
   return '<div style="background:var(--surface);border-radius:var(--r12);padding:12px;font-size:13px"><b>'+esc(q.title)+'</b> · '+esc(q.format||'Reels')+'</div>'
     +'<div><label class="label">Medya (kendi foto/videon — JPG/PNG/MP4)</label><input class="input" id="auto-file" type="file" accept="image/*,video/mp4,video/quicktime"/></div>'
     +'<div style="border:1px dashed var(--border2);border-radius:var(--r12);padding:12px;background:rgba(196,75,255,0.05)">'
@@ -1227,7 +1291,7 @@ function doAutoSend(id,now){
   var q=queue.find(function(x){return x.id===id;});if(!q)return;
   if(!settings.autoUrl){asStatus(false,'Önce otomasyonu bağla.');return;}
   var fileEl=document.getElementById('auto-file');var f=fileEl&&fileEl.files&&fileEl.files[0];
-  var cover=modal.data.coverUrl;
+  var cover=modal.data.coverUrl||q.coverUrl;
   if(!f&&!cover){asStatus(false,'Kendi medyanı seç ya da "Otomatik kapak üret"e bas.');return;}
   var caption=document.getElementById('auto-caption').value;
   var whenVal=document.getElementById('auto-when').value;
