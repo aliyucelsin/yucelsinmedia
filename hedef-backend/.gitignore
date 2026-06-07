@@ -1,0 +1,5 @@
+config.json
+posts.json
+uploads/
+node_modules/
+*.log

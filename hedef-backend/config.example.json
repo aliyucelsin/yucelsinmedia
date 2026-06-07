@@ -1,0 +1,16 @@
+{
+  "_aciklama": "Bu dosyayı 'config.json' olarak kopyala ve doldur. config.json git'e gönderilmez (.gitignore).",
+  "port": 8090,
+
+  "igUserId": "BURAYA_INSTAGRAM_USER_ID",
+  "accessToken": "BURAYA_UZUN_OMURLU_ACCESS_TOKEN",
+
+  "apiToken": "kendi-belirledigin-gizli-bir-anahtar",
+  "_apiToken_not": "Uygulamanın (HTML) backend'e erişmesi için. Uygulamadaki Otomasyon ayarına da aynısını gir.",
+
+  "publicBaseUrl": "https://xxxx.ngrok-free.app",
+  "_publicBaseUrl_not": "Backend'in INTERNETTEN erişilebilen adresi. Instagram medyayı buradan çeker. Yerelde ngrok/cloudflared, canlıda Render/Railway adresi.",
+
+  "allowOrigin": "*",
+  "_allowOrigin_not": "Güvenlik için uygulamanın adresiyle değiştir, örn. https://aliyucelsin.github.io"
+}

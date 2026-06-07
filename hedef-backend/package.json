@@ -1,0 +1,13 @@
+{
+  "name": "aliyucelsin-hedef-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ALİYÜCELSİN HEDEF — sıfır bağımlılık Instagram Graph API otomatik paylaşım backend'i (zamanlayıcı + medya barındırma).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
