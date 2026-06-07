@@ -622,7 +622,12 @@ function ideaCardHTML(it){
   h+='<div class="idea-top"><div><span class="pill pill-'+fmt.toLowerCase()+'">'+esc(fmt)+'</span> '+(it.ref?'<span style="font-size:11px;color:var(--text3)">@'+esc(it.ref)+'</span>':'')+'<div class="idea-title" style="margin-top:8px">'+esc(it.title)+'</div></div>'
     +'<div class="score-ring" style="background:'+scCol+'" title="Viral skoru">'+sc+'</div></div>';
   if(it.coverUrl)h+='<div><img src="'+it.coverUrl+'" alt="kapak" style="width:100%;border-radius:var(--r10);max-height:240px;object-fit:contain;background:#000"/>'
-    +'<div style="display:flex;gap:7px;margin-top:6px"><button class="btn btn-sm" onclick="genIdeaCover(\''+it.id+'\')">↻ Tema</button><button class="btn btn-sm" onclick="downloadDataUrl(ideaCover(\''+it.id+'\'),\'kapak.jpg\')">'+ic('copy')+' İndir</button><button class="btn btn-ghost btn-sm" onclick="removeIdeaCover(\''+it.id+'\')">Kaldır</button></div></div>';
+    +'<div style="display:flex;gap:7px;margin-top:6px;flex-wrap:wrap">'
+      +'<label class="btn btn-sm" style="cursor:pointer">'+ic('queue')+' Yükle<input type="file" accept="image/*" style="display:none" onchange="loadIdeaCover(this,\''+it.id+'\')"/></label>'
+      +'<button class="btn btn-sm" onclick="genIdeaCover(\''+it.id+'\')">↻ Tema</button>'
+      +'<button class="btn btn-sm" onclick="downloadDataUrl(ideaCover(\''+it.id+'\'),\'kapak.jpg\')">'+ic('copy')+' İndir</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="removeIdeaCover(\''+it.id+'\')">Kaldır</button>'
+    +'</div></div>';
   if(it.hook)h+='<div class="idea-hook">🎬 '+esc(it.hook)+'</div>';
   if(it.script)h+='<div class="idea-block"><b>Senaryo:</b> '+esc(it.script)+'</div>';
   if(it.sound)h+='<div class="idea-block"><b>Ses/Trend:</b> '+esc(it.sound)+'</div>';
@@ -631,7 +636,8 @@ function ideaCardHTML(it){
   if(it.hashtags)h+='<div class="idea-hashtags">'+esc(it.hashtags)+'</div>';
   h+='<div class="idea-actions">'
     +'<button class="btn btn-sm" onclick="editIdea(\''+it.id+'\')">'+ic('edit')+' Düzenle</button>'
-    +(it.coverUrl?'':'<button class="btn btn-sm" onclick="genIdeaCover(\''+it.id+'\')">'+ic('studio')+' Kapak üret</button>')
+    +(it.coverUrl?'':'<button class="btn btn-sm" onclick="genIdeaCover(\''+it.id+'\')">'+ic('studio')+' Kapak üret</button>'
+        +'<label class="btn btn-sm" style="cursor:pointer">'+ic('queue')+' Kapak yükle<input type="file" accept="image/*" style="display:none" onchange="loadIdeaCover(this,\''+it.id+'\')"/></label>')
     +'<button class="btn btn-sm" onclick="openIdeaPrompt(\''+it.id+'\')">💬 Görsel promtu</button>'
     +'<button class="btn btn-sm" onclick="copyIdea(\''+it.id+'\')">'+ic('copy')+' Kopyala</button>'
     +'<button class="btn btn-sm btn-accent" onclick="ideaToQueue(\''+it.id+'\')">'+ic('queue')+' Kuyruğa</button>'
@@ -671,6 +677,8 @@ function genIdeaCover(id){
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go);else go();
 }
 function removeIdeaCover(id){var it=ideas.find(function(x){return x.id===id;});if(it){delete it.coverUrl;delete it.coverTheme;save();render();}}
+function loadIdeaCover(input,id){var f=input&&input.files&&input.files[0];if(!f)return;var it=ideas.find(function(x){return x.id===id;});if(!it)return;
+  readFileData(f).then(function(d){it.coverUrl=d;save();toast('Kapak yüklendi ✓','ok');render();}).catch(function(){toast('Dosya okunamadı','err');});}
 function downloadDataUrl(d,name){if(!d)return;var a=document.createElement('a');a.href=d;a.download=name||'gorsel.jpg';document.body.appendChild(a);a.click();a.remove();}
 function openIdeaPrompt(id){modal={type:'ideaprompt',data:{id:id}};render();genIdeaImgPrompt(id);}
 function genIdeaImgPrompt(id){
