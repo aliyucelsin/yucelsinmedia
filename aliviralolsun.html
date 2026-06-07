@@ -1144,8 +1144,11 @@ function autoSendBody(){
     +'<div><label class="label">Caption (düzenleyebilirsin)</label><textarea class="textarea" id="auto-caption" style="min-height:110px">'+esc(full)+'</textarea></div>'
     +'<div><label class="label">Yayın zamanı</label><input class="input" id="auto-when" type="datetime-local" value="'+esc(dtLocal)+'"/></div>'
     +'<div id="autosend-status" style="display:none;font-size:12.5px;border-radius:var(--r10);padding:10px 13px"></div>'
-    +'<button class="btn btn-accent btn-lg" id="autosend-btn" onclick="doAutoSend(\''+q.id+'\')">'+ic('bolt')+' Backend\'e gönder & zamanla</button>'
-    +'<div class="tip-box">Backend medyayı barındırıp belirttiğin zamanda Instagram\'a otomatik paylaşır. Kendi videonu eklersen Reels; eklemeyip AI kapak üretirsen foto gönderisi olur.</div>';
+    +'<div style="display:flex;gap:8px">'
+      +'<button class="btn btn-lg" style="flex:1" id="autosend-btn" onclick="doAutoSend(\''+q.id+'\',false)">'+ic('clock')+' Zamanla</button>'
+      +'<button class="btn btn-accent btn-lg" style="flex:1" id="autosend-now-btn" onclick="doAutoSend(\''+q.id+'\',true)">'+ic('bolt')+' Şimdi Paylaş</button>'
+    +'</div>'
+    +'<div class="tip-box"><b>Zamanla:</b> belirttiğin saatte otomatik paylaşır. <b>Şimdi Paylaş:</b> hemen @'+esc(settings.handle||'yucelsinmedia')+'\'ya yükler. Kendi videon → Reels; AI kapak → foto gönderisi.</div>';
 }
 function asStatus(ok,msg){var el=document.getElementById('autosend-status');if(!el)return;el.style.display='block';
   el.style.background=ok?'rgba(16,185,129,0.1)':'rgba(251,80,114,0.1)';el.style.color=ok?'var(--green2)':'#fda4af';el.innerHTML=msg;}
@@ -1197,17 +1200,20 @@ function genCover(id){
   function go(){ try{ drawCover(text,COVER_THEMES[ti],function(d){modal.data.coverUrl=d;render();}); }catch(e){ if(btn){btn.disabled=false;} asStatus(false,'Kapak çizilemedi: '+esc(e.message)); } }
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go); else go();
 }
-function doAutoSend(id){
+function doAutoSend(id,now){
   var q=queue.find(function(x){return x.id===id;});if(!q)return;
   if(!settings.autoUrl){asStatus(false,'Önce otomasyonu bağla.');return;}
   var fileEl=document.getElementById('auto-file');var f=fileEl&&fileEl.files&&fileEl.files[0];
   var cover=modal.data.coverUrl;
-  if(!f&&!cover){asStatus(false,'Kendi medyanı seç ya da "AI kapak üret"e bas.');return;}
+  if(!f&&!cover){asStatus(false,'Kendi medyanı seç ya da "Otomatik kapak üret"e bas.');return;}
   var caption=document.getElementById('auto-caption').value;
   var whenVal=document.getElementById('auto-when').value;
-  var scheduledAt=whenVal?new Date(whenVal).toISOString():new Date().toISOString();
-  var btn=document.getElementById('autosend-btn');if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Yükleniyor...';}
-  asStatus(true,'<span class="spinner" style="border-top-color:var(--green2)"></span> Medya yükleniyor...');
+  var scheduledAt=now?new Date().toISOString():(whenVal?new Date(whenVal).toISOString():new Date().toISOString());
+  var b1=document.getElementById('autosend-btn'),b2=document.getElementById('autosend-now-btn');
+  function lock(){if(b1)b1.disabled=true;if(b2)b2.disabled=true;}
+  function unlock(){if(b1){b1.disabled=false;b1.innerHTML='⏰ Zamanla';}if(b2){b2.disabled=false;b2.innerHTML='⚡ Şimdi Paylaş';}}
+  lock();
+  asStatus(true,'<span class="spinner" style="border-top-color:var(--green2)"></span> '+(now?'Yükleniyor & paylaşılıyor (video ise 1 dk sürebilir)...':'Medya yükleniyor...'));
   function upload(filename,dataB64,isVideo){
     var hdr={'content-type':'application/json','x-api-token':settings.autoToken||''};
     fetch(settings.autoUrl+'/api/upload',{method:'POST',headers:hdr,body:JSON.stringify({filename:filename,dataBase64:dataB64})})
@@ -1215,21 +1221,31 @@ function doAutoSend(id){
         if(!u.ok)throw new Error(u.error||'yükleme hatası');
         return fetch(settings.autoUrl+'/api/posts',{method:'POST',headers:hdr,body:JSON.stringify({title:q.title,caption:caption,mediaUrl:u.url,mediaType:isVideo?'REELS':'IMAGE',scheduledAt:scheduledAt})})
           .then(function(r){return r.json();}).then(function(p){
-            if(!p.ok)throw new Error(p.error||'zamanlama hatası');
-            q.autoStatus='scheduled';q.autoId=p.post.id;q.date=whenVal?whenVal.slice(0,10):q.date;q.time=whenVal?whenVal.slice(11,16):q.time;save();
-            asStatus(true,'✓ Zamanlandı! Backend '+new Date(scheduledAt).toLocaleString('tr-TR')+' tarihinde otomatik paylaşacak.');
-            setTimeout(function(){closeModal();render();},1500);
+            if(!p.ok)throw new Error(p.error||'gönderi hatası');
+            if(now){
+              // hemen yayınla
+              return fetch(settings.autoUrl+'/api/publish/'+p.post.id,{method:'POST',headers:hdr})
+                .then(function(r){return r.json();}).then(function(pub){
+                  if(!pub.ok)throw new Error(pub.error||'paylaşım hatası');
+                  q.autoStatus='published';q.autoId=p.post.id;q.status='done';save();
+                  asStatus(true,'🎉 PAYLAŞILDI! @'+(settings.handle||'yucelsinmedia')+' hesabında yayında. (medya id: '+esc(pub.igMediaId||'')+')');
+                  setTimeout(function(){closeModal();render();},1800);
+                });
+            }else{
+              q.autoStatus='scheduled';q.autoId=p.post.id;q.date=whenVal?whenVal.slice(0,10):q.date;q.time=whenVal?whenVal.slice(11,16):q.time;save();
+              asStatus(true,'✓ Zamanlandı! Backend '+new Date(scheduledAt).toLocaleString('tr-TR')+' tarihinde otomatik paylaşacak.');
+              setTimeout(function(){closeModal();render();},1500);
+            }
           });
-      }).catch(function(e){asStatus(false,'Hata: '+esc(e.message));if(btn){btn.disabled=false;btn.innerHTML='⚡ Backend\'e gönder & zamanla';}});
+      }).catch(function(e){asStatus(false,'Hata: '+esc(e.message));unlock();});
   }
   if(f){
     var isVideo=/video|mp4|mov|quicktime/i.test(f.type)||/\.(mp4|mov)$/i.test(f.name);
     var reader=new FileReader();
     reader.onload=function(){upload(f.name,reader.result,isVideo);};
-    reader.onerror=function(){asStatus(false,'Dosya okunamadı.');if(btn){btn.disabled=false;btn.innerHTML='⚡ Backend\'e gönder & zamanla';}};
+    reader.onerror=function(){asStatus(false,'Dosya okunamadı.');unlock();};
     reader.readAsDataURL(f);
   }else{
-    // AI kapak görseli (foto gönderisi)
     upload('ai-kapak.jpg',cover,false);
   }
 }
