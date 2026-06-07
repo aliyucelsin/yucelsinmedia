@@ -1140,6 +1140,13 @@ function autoSendBody(){
       +'<button class="btn btn-sm" id="cover-btn" onclick="genCover(\''+q.id+'\')">'+(cover?'↻ Farklı tema dene':ic('studio')+' Otomatik kapak üret')+'</button>'
       +(cover?' <span style="font-size:11.5px;color:var(--green2);font-weight:600">✓ kapak hazır, kullanılacak</span>':'')
       +'<div style="font-size:11px;color:var(--text3);margin-top:7px">İçeriğin <b>hook/başlığı</b> marka renklerinde kapak olur. Kullanılırsa <b>foto gönderisi</b> paylaşılır (Reels için kendi videon gerekir).</div>'
+      +'<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">'
+        +'<div style="font-size:12.5px;font-weight:600;margin-bottom:6px">✨ Daha kaliteli görsel mi? ChatGPT için kreatif prompt üret</div>'
+        +'<button class="btn btn-sm" id="imgprompt-btn" onclick="genImgPrompt(\''+q.id+'\')">'+ic('studio')+' ChatGPT görsel promtu üret</button>'
+        +(modal.data.imgPrompt?'<textarea class="textarea" id="imgprompt-out" style="margin-top:8px;min-height:96px">'+esc(modal.data.imgPrompt)+'</textarea>'
+            +'<div style="display:flex;gap:8px;margin-top:6px"><button class="btn btn-sm" onclick="copyText(document.getElementById(\'imgprompt-out\').value,\'Görsel promtu\')">'+ic('copy')+' Kopyala</button><a class="btn btn-sm" href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT\'yi aç</a></div>'
+            +'<div style="font-size:11px;color:var(--text3);margin-top:6px">Promtu kopyala → ChatGPT\'de görseli üret → indir → yukarıdaki <b>"Choose File"</b> ile ekle → Şimdi Paylaş.</div>':'')
+      +'</div>'
     +'</div>'
     +'<div><label class="label">Caption (düzenleyebilirsin)</label><textarea class="textarea" id="auto-caption" style="min-height:110px">'+esc(full)+'</textarea></div>'
     +'<div><label class="label">Yayın zamanı</label><input class="input" id="auto-when" type="datetime-local" value="'+esc(dtLocal)+'"/></div>'
@@ -1199,6 +1206,22 @@ function genCover(id){
   var text=(q.hook&&q.hook.length<=110)?q.hook:q.title;
   function go(){ try{ drawCover(text,COVER_THEMES[ti],function(d){modal.data.coverUrl=d;render();}); }catch(e){ if(btn){btn.disabled=false;} asStatus(false,'Kapak çizilemedi: '+esc(e.message)); } }
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go); else go();
+}
+/* ChatGPT/DALL-E için kaliteli, kreatif görsel promtu üret (Groq ile) */
+function genImgPrompt(id){
+  var q=queue.find(function(x){return x.id===id;});if(!q)return;
+  var capEl=document.getElementById('auto-caption');if(capEl)modal.data.caption=capEl.value;
+  var whenEl=document.getElementById('auto-when');if(whenEl)modal.data.when=whenEl.value;
+  if(!getApiKey()){asStatus(false,'Önce AI anahtarı bağla (sol alt AI).');return;}
+  var btn=document.getElementById('imgprompt-btn');if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Yazılıyor...';}
+  var st=settings.style||defaultStyle();
+  callAI('Bir görsel üretme AI\'ı (ChatGPT/DALL-E) için DETAYLI ve KREATİF tek bir İngilizce görsel promtu yaz. '
+    +'Instagram için 4:5 dikey, scroll-stopper, yüksek kaliteli, profesyonel. '
+    +'İçerik: "'+q.title+'"'+(q.hook?(' — '+q.hook):'')+'. Tarz/ton: '+(st.tone||'')+'; konular: '+(st.topics||'')+'. '
+    +'Promtta net belirt: sahne/konu, kompozisyon, ışık, renk paleti, mood, sanat stili, kamera/lens. '
+    +'İstersen görselde kısa ve okunaklı bir başlık metni öner. SADECE İngilizce promtu yaz, başına/sonuna açıklama EKLEME.',450,false)
+    .then(function(p){modal.data.imgPrompt=(p||'').trim();render();})
+    .catch(function(e){asStatus(false,'Prompt üretilemedi: '+esc(e.message));if(btn){btn.disabled=false;btn.innerHTML='ChatGPT görsel promtu üret';}});
 }
 function doAutoSend(id,now){
   var q=queue.find(function(x){return x.id===id;});if(!q)return;
