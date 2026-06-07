@@ -1129,33 +1129,88 @@ function testBackend(){
 }
 function autoSendBody(){
   var q=queue.find(function(x){return x.id===modal.data.id;});if(!q)return '<div>Bulunamadı</div>';
-  var dtLocal=(q.date||'')+'T'+(q.time||'20:00');
-  var full=(q.caption||'')+(q.engagement?'\n\n'+q.engagement:'')+'\n\n'+(q.hashtags||'');
+  var dtLocal=modal.data.when||((q.date||'')+'T'+(q.time||'20:00'));
+  var full=modal.data.caption!=null?modal.data.caption:((q.caption||'')+(q.engagement?'\n\n'+q.engagement:'')+'\n\n'+(q.hashtags||''));
+  var cover=modal.data.coverUrl;
   return '<div style="background:var(--surface);border-radius:var(--r12);padding:12px;font-size:13px"><b>'+esc(q.title)+'</b> · '+esc(q.format||'Reels')+'</div>'
-    +'<div><label class="label">Medya (foto JPG/PNG veya video MP4 — Reels)</label><input class="input" id="auto-file" type="file" accept="image/*,video/mp4,video/quicktime"/></div>'
+    +'<div><label class="label">Medya (kendi foto/videon — JPG/PNG/MP4)</label><input class="input" id="auto-file" type="file" accept="image/*,video/mp4,video/quicktime"/></div>'
+    +'<div style="border:1px dashed var(--border2);border-radius:var(--r12);padding:12px;background:rgba(196,75,255,0.05)">'
+      +'<div style="font-size:12.5px;font-weight:600;margin-bottom:8px">🎨 Video/foto eklemezsen — otomatik kapak tasarla</div>'
+      +(cover?'<img src="'+cover+'" alt="kapak" style="width:100%;max-height:300px;object-fit:contain;border-radius:var(--r10);margin-bottom:8px;background:#000"/>':'')
+      +'<button class="btn btn-sm" id="cover-btn" onclick="genCover(\''+q.id+'\')">'+(cover?'↻ Farklı tema dene':ic('studio')+' Otomatik kapak üret')+'</button>'
+      +(cover?' <span style="font-size:11.5px;color:var(--green2);font-weight:600">✓ kapak hazır, kullanılacak</span>':'')
+      +'<div style="font-size:11px;color:var(--text3);margin-top:7px">İçeriğin <b>hook/başlığı</b> marka renklerinde kapak olur. Kullanılırsa <b>foto gönderisi</b> paylaşılır (Reels için kendi videon gerekir).</div>'
+    +'</div>'
     +'<div><label class="label">Caption (düzenleyebilirsin)</label><textarea class="textarea" id="auto-caption" style="min-height:110px">'+esc(full)+'</textarea></div>'
     +'<div><label class="label">Yayın zamanı</label><input class="input" id="auto-when" type="datetime-local" value="'+esc(dtLocal)+'"/></div>'
     +'<div id="autosend-status" style="display:none;font-size:12.5px;border-radius:var(--r10);padding:10px 13px"></div>'
     +'<button class="btn btn-accent btn-lg" id="autosend-btn" onclick="doAutoSend(\''+q.id+'\')">'+ic('bolt')+' Backend\'e gönder & zamanla</button>'
-    +'<div class="tip-box">Backend bu medyayı barındırıp belirttiğin zamanda Instagram\'a otomatik paylaşır. Medya backend\'in public adresinde geçici tutulur.</div>';
+    +'<div class="tip-box">Backend medyayı barındırıp belirttiğin zamanda Instagram\'a otomatik paylaşır. Kendi videonu eklersen Reels; eklemeyip AI kapak üretirsen foto gönderisi olur.</div>';
 }
 function asStatus(ok,msg){var el=document.getElementById('autosend-status');if(!el)return;el.style.display='block';
   el.style.background=ok?'rgba(16,185,129,0.1)':'rgba(251,80,114,0.1)';el.style.color=ok?'var(--green2)':'#fda4af';el.innerHTML=msg;}
+/* video/foto yoksa: tarayıcıda Canvas ile markalı kapak (hook/başlık metinli) — anahtarsız, anında, %100 çalışır */
+var COVER_THEMES=[
+  ['#6d4fef','#e0457f'],   // mor → pembe
+  ['#12101d','#7c3aed'],   // koyu → mor
+  ['#ff6a3d','#c0297a'],   // gün batımı
+  ['#0ea5a4','#2563eb'],   // teal → mavi
+  ['#0b0b12','#e0457f']    // siyah → pembe
+];
+function wrapText(ctx,text,maxW){
+  var words=String(text||'').replace(/\s+/g,' ').trim().split(' '),lines=[],cur='';
+  words.forEach(function(w){var t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});
+  if(cur)lines.push(cur);return lines;
+}
+function drawCover(text,theme,cb){
+  var c=document.createElement('canvas');c.width=1080;c.height=1350;var x=c.getContext('2d');
+  var g=x.createLinearGradient(0,0,1080,1350);g.addColorStop(0,theme[0]);g.addColorStop(1,theme[1]);
+  x.fillStyle=g;x.fillRect(0,0,1080,1350);
+  // dekoratif yumuşak ışık
+  var rg=x.createRadialGradient(880,240,40,880,240,520);rg.addColorStop(0,'rgba(255,255,255,0.18)');rg.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=rg;x.fillRect(0,0,1080,1350);
+  // alt karartma (okunabilirlik)
+  var go=x.createLinearGradient(0,650,0,1350);go.addColorStop(0,'rgba(0,0,0,0)');go.addColorStop(1,'rgba(0,0,0,0.4)');x.fillStyle=go;x.fillRect(0,650,1080,700);
+  // üst etiket
+  x.textBaseline='top';x.fillStyle='rgba(255,255,255,0.92)';x.font='800 30px Sora, Inter, sans-serif';
+  x.fillText('@'+(settings.handle||'yucelsinmedia').toUpperCase(),84,96);
+  x.fillStyle='rgba(255,255,255,0.5)';x.fillRect(84,150,90,5);
+  // ana metin (hook/başlık)
+  x.textBaseline='alphabetic';x.fillStyle='#ffffff';
+  var fs=92,maxW=912,lines;x.font='800 '+fs+'px Sora, Inter, sans-serif';lines=wrapText(x,text,maxW);
+  while((lines.length>6||fs*1.16*lines.length>820)&&fs>44){fs-=6;x.font='800 '+fs+'px Sora, Inter, sans-serif';lines=wrapText(x,text,maxW);}
+  var lh=fs*1.16,startY=(1350-lines.length*lh)/2+fs*0.85;
+  x.shadowColor='rgba(0,0,0,0.32)';x.shadowBlur=20;x.shadowOffsetY=5;
+  lines.forEach(function(ln,i){x.fillText(ln,84,startY+i*lh);});
+  x.shadowColor='transparent';
+  // alt: handle
+  x.font='600 30px Inter, sans-serif';x.fillStyle='rgba(255,255,255,0.92)';x.textBaseline='alphabetic';
+  x.fillText('@'+(settings.handle||'yucelsinmedia'),84,1270);
+  cb(c.toDataURL('image/jpeg',0.92));
+}
+function genCover(id){
+  var q=queue.find(function(x){return x.id===id;});if(!q)return;
+  var capEl=document.getElementById('auto-caption');if(capEl)modal.data.caption=capEl.value;
+  var whenEl=document.getElementById('auto-when');if(whenEl)modal.data.when=whenEl.value;
+  var btn=document.getElementById('cover-btn');if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Tasarlanıyor...';}
+  var ti=(modal.data.coverTheme==null?0:(modal.data.coverTheme+1)%COVER_THEMES.length);modal.data.coverTheme=ti;
+  var text=(q.hook&&q.hook.length<=110)?q.hook:q.title;
+  function go(){ try{ drawCover(text,COVER_THEMES[ti],function(d){modal.data.coverUrl=d;render();}); }catch(e){ if(btn){btn.disabled=false;} asStatus(false,'Kapak çizilemedi: '+esc(e.message)); } }
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go); else go();
+}
 function doAutoSend(id){
   var q=queue.find(function(x){return x.id===id;});if(!q)return;
   if(!settings.autoUrl){asStatus(false,'Önce otomasyonu bağla.');return;}
   var fileEl=document.getElementById('auto-file');var f=fileEl&&fileEl.files&&fileEl.files[0];
-  if(!f){asStatus(false,'Bir medya dosyası seç.');return;}
+  var cover=modal.data.coverUrl;
+  if(!f&&!cover){asStatus(false,'Kendi medyanı seç ya da "AI kapak üret"e bas.');return;}
   var caption=document.getElementById('auto-caption').value;
   var whenVal=document.getElementById('auto-when').value;
   var scheduledAt=whenVal?new Date(whenVal).toISOString():new Date().toISOString();
-  var isVideo=/video|mp4|mov|quicktime/i.test(f.type)||/\.(mp4|mov)$/i.test(f.name);
   var btn=document.getElementById('autosend-btn');if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Yükleniyor...';}
   asStatus(true,'<span class="spinner" style="border-top-color:var(--green2)"></span> Medya yükleniyor...');
-  var reader=new FileReader();
-  reader.onload=function(){
+  function upload(filename,dataB64,isVideo){
     var hdr={'content-type':'application/json','x-api-token':settings.autoToken||''};
-    fetch(settings.autoUrl+'/api/upload',{method:'POST',headers:hdr,body:JSON.stringify({filename:f.name,dataBase64:reader.result})})
+    fetch(settings.autoUrl+'/api/upload',{method:'POST',headers:hdr,body:JSON.stringify({filename:filename,dataBase64:dataB64})})
       .then(function(r){return r.json();}).then(function(u){
         if(!u.ok)throw new Error(u.error||'yükleme hatası');
         return fetch(settings.autoUrl+'/api/posts',{method:'POST',headers:hdr,body:JSON.stringify({title:q.title,caption:caption,mediaUrl:u.url,mediaType:isVideo?'REELS':'IMAGE',scheduledAt:scheduledAt})})
@@ -1163,12 +1218,20 @@ function doAutoSend(id){
             if(!p.ok)throw new Error(p.error||'zamanlama hatası');
             q.autoStatus='scheduled';q.autoId=p.post.id;q.date=whenVal?whenVal.slice(0,10):q.date;q.time=whenVal?whenVal.slice(11,16):q.time;save();
             asStatus(true,'✓ Zamanlandı! Backend '+new Date(scheduledAt).toLocaleString('tr-TR')+' tarihinde otomatik paylaşacak.');
-            setTimeout(function(){closeModal();render();},1400);
+            setTimeout(function(){closeModal();render();},1500);
           });
       }).catch(function(e){asStatus(false,'Hata: '+esc(e.message));if(btn){btn.disabled=false;btn.innerHTML='⚡ Backend\'e gönder & zamanla';}});
-  };
-  reader.onerror=function(){asStatus(false,'Dosya okunamadı.');if(btn){btn.disabled=false;}};
-  reader.readAsDataURL(f);
+  }
+  if(f){
+    var isVideo=/video|mp4|mov|quicktime/i.test(f.type)||/\.(mp4|mov)$/i.test(f.name);
+    var reader=new FileReader();
+    reader.onload=function(){upload(f.name,reader.result,isVideo);};
+    reader.onerror=function(){asStatus(false,'Dosya okunamadı.');if(btn){btn.disabled=false;btn.innerHTML='⚡ Backend\'e gönder & zamanla';}};
+    reader.readAsDataURL(f);
+  }else{
+    // AI kapak görseli (foto gönderisi)
+    upload('ai-kapak.jpg',cover,false);
+  }
 }
 
 /* ════════════════════════════════════════════════════
