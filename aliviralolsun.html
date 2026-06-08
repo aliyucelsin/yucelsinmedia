@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://generativelanguage.googleapis.com https://api.groq.com https://api.anthropic.com https://api.openai.com https: http://localhost:* http://127.0.0.1:*; base-uri 'none'; form-action 'none'"/>
 <title>Aliviralolsun — Viral İçerik Ajansı</title>
+<link rel="manifest" href="./manifest.json"/>
+<meta name="theme-color" content="#08070d"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Aliviralolsun"/>
+<link rel="apple-touch-icon" href="./icon-192.png"/>
+<link rel="icon" type="image/png" href="./icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -472,7 +480,7 @@ function render(){
     '<aside class="sidebar">'
     +'<div class="logo-wrap"><div class="logo-wordmark">ALİ<span>VİRALOLSUN</span></div><div class="logo-tag">Viral İçerik Ajansı</div><span class="logo-dot"></span></div>'
     +'<nav class="nav">'+nav+'</nav>'
-    +'<div class="sidebar-foot"><button class="foot-btn" onclick="openModal(\'api\')">'+ic('bolt')+' AI</button><button class="foot-btn" onclick="toggleTheme()">◑ Tema</button><button class="foot-btn" onclick="logout()">Çıkış</button></div>'
+    +'<div class="sidebar-foot"><button class="foot-btn" onclick="openModal(\'api\')">'+ic('bolt')+' AI</button><button class="foot-btn" onclick="installPWA()">📲 Yükle</button><button class="foot-btn" onclick="toggleTheme()">◑ Tema</button><button class="foot-btn" onclick="logout()">Çıkış</button></div>'
     +'</aside>'
     +'<div class="main">'
     +'<div class="topbar"><button class="burger" onclick="toggleSidebar()">☰</button>'
@@ -1409,11 +1417,22 @@ function logout(){localStorage.removeItem(K+'auth');render();}
 /* ════════════════════════════════════════════════════
    BOOT
 ════════════════════════════════════════════════════ */
+/* ════════ PWA: kurulum + service worker ════════ */
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;});
+window.addEventListener('appinstalled',function(){deferredPrompt=null;toast('Uygulama yüklendi ✓','ok');});
+function installPWA(){
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){deferredPrompt=null;});return;}
+  if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches){toast('Uygulama zaten kurulu ✓','ok');return;}
+  var iOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  toast(iOS?'Safari: Paylaş ⬆ → "Ana Ekrana Ekle"':'Tarayıcı menüsü ⋮ → "Uygulamayı yükle / Ana ekrana ekle"');
+}
 (function(){
   if(localStorage.getItem(K+'theme')==='light')document.body.classList.add('light');
   if(localStorage.getItem(K+'pin')){localStorage.removeItem(K+'pin');} // eski düz-metin PIN'i temizle
   load();
   render();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){});}
 })();
 </script>
 </body>
